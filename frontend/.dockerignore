@@ -1,0 +1,16 @@
+node_modules
+.git
+.gitignore
+README.md
+.npmrc
+src
+public
+*.md
+.env*
+babel.config.js
+postcss.config.js
+tailwind.config.js
+vue.config.js
+package.json
+yarn.lock
+
