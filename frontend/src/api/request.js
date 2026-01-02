@@ -3,7 +3,7 @@ import axios from 'axios';
 // 创建 axios 实例
 const api = axios.create({
   baseURL: process.env.VUE_APP_API_URL || '/api',
-  timeout: 30000,
+  timeout: 120000, // 增加超时时间到 120 秒
   headers: {
     'Content-Type': 'application/json'
   }

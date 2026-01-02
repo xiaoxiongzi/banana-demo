@@ -40,7 +40,7 @@ const connectDB = async () => {
     }
   } catch (error) {
     console.error('❌ MySQL 连接失败:', error.message);
-    process.exit(1);
+    // process.exit(1);
   }
 };
 

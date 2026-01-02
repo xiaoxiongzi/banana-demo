@@ -162,12 +162,13 @@ export default {
       }
     },
     canGenerate() {
-      return this.isAuthenticated && this.prompt.trim().length > 0 && !this.isGenerating;
+      // return this.isAuthenticated && this.prompt.trim().length > 0 && !this.isGenerating;
+      return this.prompt.trim().length > 0 && !this.isGenerating;
     },
     disabledReason() {
-      if (!this.isAuthenticated) {
-        return '请先登录';
-      }
+      // if (!this.isAuthenticated) {
+      //   return '请先登录';
+      // }
       if (!this.prompt.trim()) {
         return '请输入图片描述';
       }

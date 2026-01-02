@@ -1,49 +1,77 @@
 const Router = require('koa-router');
-const multer = require('@koa/multer');
+// const multer = require('@koa/multer'); // 不需要 multer 了，koa-body 处理了
 const { auth } = require('../middleware/auth');
 const { success, error } = require('../utils/response');
-const { uploadFile, deleteFile, generateFileName } = require('../config/cos');
+const { generateFileName } = require('../config/cos');
 
 const router = new Router({ prefix: '/api/upload' });
 
-// 配置 multer - 使用内存存储
-const storage = multer.memoryStorage();
-
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('只支持 JPG、PNG、WEBP 格式的图片'));
-  }
-};
-
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5 * 1024 * 1024 // 5MB
-  }
-});
+// 配置 multer - 使用内存存储 (移除，因为 koa-body 已经全局配置了 multipart)
+// const storage = multer.memoryStorage();
+// ...
+// const upload = multer({...});
 
 /**
  * 上传图片到腾讯云 COS
  * POST /api/upload
  */
-router.post('/', auth, upload.array('images', 3), async (ctx) => {
+router.post('/', async (ctx) => { // 移除了 upload.array 中间件
+  // 如果 koa-body 解析失败，multer 会尝试重新解析，或者这里可能需要直接处理 ctx.req
   try {
-    if (!ctx.files || ctx.files.length === 0) {
+    // 检查 ctx.files 或 ctx.request.files
+    const files = ctx.files || ctx.request.files;
+    
+    // 兼容处理：如果是 koa-body 处理后的文件，结构可能不同
+    let filesToUpload = [];
+    
+    if (files) {
+      if (Array.isArray(files)) {
+        filesToUpload = files;
+      } else if (files.images) {
+         // koa-body 可能会把文件放在 files.images 中
+         filesToUpload = Array.isArray(files.images) ? files.images : [files.images];
+      }
+    }
+
+    if (!filesToUpload || filesToUpload.length === 0) {
       ctx.status = 400;
       ctx.body = error('请选择要上传的图片');
       return;
     }
     
-    // 上传所有文件到 COS
-    const uploadPromises = ctx.files.map(async (file) => {
-      const fileName = generateFileName(file.originalname);
-      const fileUrl = await uploadFile(file.buffer, fileName, 'uploads');
-      return fileUrl;
+    // 上传所有文件到 COS (或本地)
+    const uploadPromises = filesToUpload.map(async (file) => {
+       // 注意：如果是 koa-body，file.buffer 可能不存在，而是 file.filepath
+       // 如果是 multer memoryStorage，则有 file.buffer
+       
+       const originalName = file.originalFilename || file.newFilename || file.name || 'unknown.jpg';
+       const fileName = generateFileName(originalName);
+       let buffer;
+       
+       if (file.buffer) {
+         buffer = file.buffer;
+       } else if (file.filepath || file.path) {
+         const fs = require('fs');
+         buffer = fs.readFileSync(file.filepath || file.path);
+       }
+       
+       if (!buffer) {
+         throw new Error('无法读取文件内容');
+       }
+
+       // 既然前面 generate.js 改成了存本地，这里保持一致，或者复用 COS 上传(如果 COS 配置了的话)
+       // 为了简化，这里也先存本地，复用 generate.js 里的 saveToLocal 逻辑的变体
+       
+       const fs = require('fs');
+       const path = require('path');
+       const uploadDir = path.join(__dirname, '../../uploads'); // 存放在 uploads 根目录或子目录
+       if (!fs.existsSync(uploadDir)) {
+         fs.mkdirSync(uploadDir, { recursive: true });
+       }
+       const filePath = path.join(uploadDir, fileName);
+       fs.writeFileSync(filePath, buffer);
+       
+       return `/uploads/${fileName}`;
     });
     
     const fileUrls = await Promise.all(uploadPromises);

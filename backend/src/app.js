@@ -1,7 +1,7 @@
 require('dotenv').config();
 const Koa = require('koa');
 const cors = require('@koa/cors');
-const koaBody = require('koa-body');
+const { koaBody } = require('koa-body');
 const { connectDB } = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -10,6 +10,13 @@ const app = new Koa();
 
 // 连接数据库
 connectDB();
+
+// 静态资源服务
+const serve = require('koa-static');
+const mount = require('koa-mount');
+const path = require('path');
+
+// ... existing code ...
 
 // 中间件
 app.use(errorHandler);
@@ -21,8 +28,12 @@ app.use(koaBody({
   }
 }));
 
+// 静态文件服务：将 /uploads 路径映射到本地 uploads 文件夹
+app.use(mount('/uploads', serve(path.join(__dirname, '../uploads'))));
+
 // 路由
 const authRoutes = require('./routes/auth');
+
 const uploadRoutes = require('./routes/upload');
 const generateRoutes = require('./routes/generate');
 const creditsRoutes = require('./routes/credits');
