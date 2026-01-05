@@ -1,10 +1,6 @@
 # Nano Banana AI - 全栈项目
 
-一个使用 Koa 2.x + Vue 2.x + Tailwind CSS 构建的 AI 图像编辑工具，一比一还原 Banana AI 网站。
-
-## 项目预览
-
-![Nano Banana AI](https://banana.147ai.com/)
+一个使用 Koa 2.x + Vue 2.x + Tailwind CSS 构建的 AI 图像编辑工具
 
 ## 技术栈
 
