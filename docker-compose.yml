@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: banana-backend
+    restart: always
+    ports:
+      - "5656:3000"
+    env_file:
+      - .env
+    volumes:
+      - ./backend/uploads:/app/uploads
+    networks:
+      - banana-network
+
+  frontend:
+    build: ./frontend
+    container_name: banana-frontend
+    restart: always
+    ports:
+      - "4786:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+    networks:
+      - banana-network
+
+networks:
+  banana-network:
+    driver: bridge
+

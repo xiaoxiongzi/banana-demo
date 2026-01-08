@@ -1,0 +1,171 @@
+kind: pipeline
+type: docker
+name: frontend-deploy
+
+trigger:
+  branch:
+    - main
+  event:
+    - push
+  paths:
+    include:
+      - frontend/**/*
+      - docker-compose.yml
+      - nginx.conf
+
+steps:
+  - name: build-frontend
+    image: node:18-alpine
+    commands:
+      - cd frontend
+      - npm install
+      - npm run build
+
+  - name: transfer-frontend
+    image: appleboy/drone-scp
+    settings:
+      host:
+        from_secret: ssh_host
+      username:
+        from_secret: ssh_username
+      key:
+        from_secret: ssh_key
+      target: /opt/banana-app/frontend
+      source:
+        - frontend/dist
+        - frontend/Dockerfile
+      strip_components: 1
+
+  - name: transfer-compose
+    image: appleboy/drone-scp
+    settings:
+      host:
+        from_secret: ssh_host
+      username:
+        from_secret: ssh_username
+      key:
+        from_secret: ssh_key
+      target: /opt/banana-app
+      source:
+        - docker-compose.yml
+        - nginx.conf
+
+  - name: deploy-frontend
+    image: appleboy/drone-ssh
+    settings:
+      host:
+        from_secret: ssh_host
+      username:
+        from_secret: ssh_username
+      key:
+        from_secret: ssh_key
+      script:
+        - cd /opt/banana-app
+        - docker-compose up -d --build frontend
+
+---
+kind: pipeline
+type: docker
+name: backend-deploy
+
+trigger:
+  branch:
+    - main
+  event:
+    - push
+  paths:
+    include:
+      - backend/**/*
+      - docker-compose.yml
+
+steps:
+  - name: transfer-backend
+    image: appleboy/drone-scp
+    settings:
+      host:
+        from_secret: ssh_host
+      username:
+        from_secret: ssh_username
+      key:
+        from_secret: ssh_key
+      target: /opt/banana-app/backend
+      source:
+        - backend/**/*
+      exclude:
+        - backend/node_modules/**/*
+        - backend/.git/**/*
+        - backend/uploads/**/*
+      strip_components: 1
+
+  - name: transfer-compose
+    image: appleboy/drone-scp
+    settings:
+      host:
+        from_secret: ssh_host
+      username:
+        from_secret: ssh_username
+      key:
+        from_secret: ssh_key
+      target: /opt/banana-app
+      source:
+        - docker-compose.yml
+
+  - name: deploy-backend
+    image: appleboy/drone-ssh
+    environment:
+      MYSQL_HOST:
+        from_secret: mysql_host
+      MYSQL_PORT:
+        from_secret: mysql_port
+      MYSQL_DATABASE:
+        from_secret: mysql_database
+      MYSQL_USERNAME:
+        from_secret: mysql_username
+      MYSQL_PASSWORD:
+        from_secret: mysql_password
+      TENCENT_SECRET_ID:
+        from_secret: tencent_secret_id
+      TENCENT_SECRET_KEY:
+        from_secret: tencent_secret_key
+      COS_BUCKET:
+        from_secret: cos_bucket
+      COS_REGION:
+        from_secret: cos_region
+      GOOGLE_GENAI_API_KEY:
+        from_secret: google_genai_api_key
+      JWT_SECRET:
+        from_secret: jwt_secret
+    settings:
+      host:
+        from_secret: ssh_host
+      username:
+        from_secret: ssh_username
+      key:
+        from_secret: ssh_key
+      envs:
+        - MYSQL_HOST
+        - MYSQL_PORT
+        - MYSQL_DATABASE
+        - MYSQL_USERNAME
+        - MYSQL_PASSWORD
+        - TENCENT_SECRET_ID
+        - TENCENT_SECRET_KEY
+        - COS_BUCKET
+        - COS_REGION
+        - GOOGLE_GENAI_API_KEY
+        - JWT_SECRET
+      script:
+        - cd /opt/banana-app
+        - echo "MYSQL_HOST=$MYSQL_HOST" > .env
+        - echo "MYSQL_PORT=$MYSQL_PORT" >> .env
+        - echo "MYSQL_DATABASE=$MYSQL_DATABASE" >> .env
+        - echo "MYSQL_USERNAME=$MYSQL_USERNAME" >> .env
+        - echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> .env
+        - echo "TENCENT_SECRET_ID=$TENCENT_SECRET_ID" >> .env
+        - echo "TENCENT_SECRET_KEY=$TENCENT_SECRET_KEY" >> .env
+        - echo "COS_BUCKET=$COS_BUCKET" >> .env
+        - echo "COS_REGION=$COS_REGION" >> .env
+        - echo "GOOGLE_GENAI_API_KEY=$GOOGLE_GENAI_API_KEY" >> .env
+        - echo "JWT_SECRET=$JWT_SECRET" >> .env
+        - docker-compose up -d --build backend
+
