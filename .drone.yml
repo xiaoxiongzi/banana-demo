@@ -1,5 +1,24 @@
 kind: pipeline
 type: docker
+name: default-check
+
+trigger:
+  branch:
+    - main
+  event:
+    - push
+    - custom
+
+steps:
+  - name: check
+    image: alpine
+    commands:
+      - echo "Configuration loaded successfully."
+      - echo "If you see only this pipeline, it means other pipelines were skipped due to 'paths' filters."
+
+---
+kind: pipeline
+type: docker
 name: frontend-deploy
 
 trigger:
@@ -7,6 +26,7 @@ trigger:
     - main
   event:
     - push
+    - custom
   paths:
     include:
       - frontend/**/*
@@ -73,6 +93,7 @@ trigger:
     - main
   event:
     - push
+    - custom
   paths:
     include:
       - backend/**/*
@@ -168,4 +189,3 @@ steps:
         - echo "GOOGLE_GENAI_API_KEY=$GOOGLE_GENAI_API_KEY" >> .env
         - echo "JWT_SECRET=$JWT_SECRET" >> .env
         - docker-compose up -d --build backend
-
