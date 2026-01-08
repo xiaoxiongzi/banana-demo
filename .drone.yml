@@ -12,6 +12,7 @@ trigger:
 steps:
   - name: check
     image: alpine
+    pull: if-not-exists
     commands:
       - echo "Configuration loaded successfully."
       - echo "If you see only this pipeline, it means other pipelines were skipped due to 'paths' filters."
