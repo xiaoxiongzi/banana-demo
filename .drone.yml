@@ -34,13 +34,38 @@ trigger:
       - docker-compose.yml
       - nginx.conf
 
+volumes:
+  - name: node_cache
+    host:
+      path: /tmp/drone/cache
+
 steps:
+  - name: restore-cache
+    image: drillster/drone-volume-cache
+    volumes:
+      - name: node_cache
+        path: /cache
+    settings:
+      restore: true
+      mount:
+        - frontend/node_modules
+
   - name: build-frontend
     image: node:18-alpine
     commands:
       - cd frontend
       - npm install
       - npm run build
+
+  - name: rebuild-cache
+    image: drillster/drone-volume-cache
+    volumes:
+      - name: node_cache
+        path: /cache
+    settings:
+      rebuild: true
+      mount:
+        - frontend/node_modules
 
   - name: transfer-frontend
     image: appleboy/drone-scp
