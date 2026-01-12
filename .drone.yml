@@ -137,7 +137,7 @@ steps:
         from_secret: ssh_key
       target: /opt/banana-app/backend
       source:
-        - backend/**/*
+        - backend
       exclude:
         - backend/node_modules/**/*
         - backend/.git/**/*
