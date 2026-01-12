@@ -19,7 +19,7 @@ services:
     container_name: banana-frontend
     restart: always
     ports:
-      - "4786:80"
+      - "7785:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:

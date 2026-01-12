@@ -107,7 +107,7 @@ steps:
         from_secret: ssh_key
       script:
         - cd /opt/banana-app
-        - docker-compose up -d --build --no-deps frontend
+        - docker-compose up -d --build --force-recreate --no-deps frontend
 
 ---
 kind: pipeline
