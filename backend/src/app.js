@@ -11,37 +11,19 @@ const app = new Koa();
 // 连接数据库
 connectDB();
 
-// 静态资源服务
-const serve = require('koa-static');
-const mount = require('koa-mount');
-const path = require('path');
-
-// ... existing code ...
-
 // 中间件
 app.use(errorHandler);
 app.use(cors());
-app.use(koaBody({
-  multipart: true,
-  formidable: {
-    maxFileSize: parseInt(process.env.MAX_FILE_SIZE) || 5 * 1024 * 1024,
-  }
-}));
-
-// 静态文件服务：将 /uploads 路径映射到本地 uploads 文件夹
-app.use(mount('/uploads', serve(path.join(__dirname, '../uploads'))));
+app.use(koaBody());
 
 // 路由
 const authRoutes = require('./routes/auth');
-
-const uploadRoutes = require('./routes/upload');
 const generateRoutes = require('./routes/generate');
 const creditsRoutes = require('./routes/credits');
 const orderRoutes = require('./routes/order');
 const historyRoutes = require('./routes/history');
 
 app.use(authRoutes.routes()).use(authRoutes.allowedMethods());
-app.use(uploadRoutes.routes()).use(uploadRoutes.allowedMethods());
 app.use(generateRoutes.routes()).use(generateRoutes.allowedMethods());
 app.use(creditsRoutes.routes()).use(creditsRoutes.allowedMethods());
 app.use(orderRoutes.routes()).use(orderRoutes.allowedMethods());

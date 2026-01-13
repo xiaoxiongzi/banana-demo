@@ -1,8 +1,8 @@
-# 腾讯云 MySQL + COS 改造总结
+# MySQL 数据库改造总结
 
 ## 改造完成情况
 
-✅ 所有改造任务已完成，后端已成功从 MongoDB + 本地文件存储迁移到腾讯云 MySQL + 对象存储（COS）。
+✅ 所有改造任务已完成，后端已成功从 MongoDB 迁移到 MySQL。图片处理采用内存方式，不再保存到本地或云存储。
 
 ## 主要变更文件清单
 
@@ -10,9 +10,8 @@
 
 | 文件 | 变更类型 | 说明 |
 |------|---------|------|
-| `package.json` | 修改 | 移除 mongoose 和 koa-static，添加 sequelize、mysql2、cos-nodejs-sdk-v5、axios |
+| `package.json` | 修改 | 移除 mongoose，添加 sequelize、mysql2 |
 | `src/config/database.js` | 重写 | 从 Mongoose 连接改为 Sequelize + MySQL 连接 |
-| `src/config/cos.js` | 新增 | 腾讯云 COS 配置和工具函数（上传、删除、生成文件名） |
 
 ### 2. 模型文件（全部重写）
 
@@ -35,8 +34,7 @@
 | 文件 | 主要变更 |
 |------|---------|
 | `src/routes/auth.js` | 查询语法从 Mongoose 改为 Sequelize，使用 `Op` 操作符 |
-| `src/routes/upload.js` | 集成 COS SDK，上传到 COS 而非本地文件系统 |
-| `src/routes/generate.js` | 生成的图片上传到 COS，返回 COS URL |
+| `src/routes/generate.js` | 图片处理改为内存方式，接收和返回 base64 数据 |
 | `src/routes/credits.js` | 查询和更新语法适配 Sequelize |
 | `src/routes/order.js` | 查询和创建语法适配 Sequelize |
 | `src/routes/history.js` | 使用 Sequelize 的 `findAndCountAll` 和聚合函数 |
@@ -80,11 +78,11 @@ const users = await User.findAll({
 
 | 组件 | 改造前 | 改造后 |
 |------|--------|--------|
-| 数据库 | MongoDB | 腾讯云 MySQL |
+| 数据库 | MongoDB | MySQL |
 | ORM | Mongoose | Sequelize |
-| 文件存储 | 本地文件系统 (`uploads/`) | 腾讯云对象存储（COS） |
-| 静态文件服务 | koa-static | 移除（使用 COS 公开访问） |
-| 图片 URL | `/uploads/xxx.jpg` | `https://bucket.cos.region.myqcloud.com/xxx.jpg` |
+| 文件存储 | 本地文件系统 (`uploads/`) | 内存处理（base64） |
+| 静态文件服务 | koa-static | 移除 |
+| 图片数据 | 文件路径 `/uploads/xxx.jpg` | base64 data URL |
 
 ## 数据模型变化
 
@@ -125,38 +123,31 @@ inputImages: {
 { timestamps: true }  // 同样自动生成，但需要在模型中定义
 ```
 
-## COS 存储架构
+## 图片处理架构
 
-### 文件夹结构
+### 内存处理方式
 
-```
-存储桶名称-APPID/
-├── uploads/              # 用户上传的图片
-│   ├── 1234567890-123456789.jpg
-│   ├── 1234567891-987654321.png
-│   └── ...
-└── generated/            # AI 生成的图片
-    ├── 1234567892-111222333.jpg
-    ├── 1234567893-444555666.png
-    └── ...
-```
+所有图片均在内存中处理，不保存到本地或云存储：
 
-### 文件命名规则
+1. **前端上传**：使用 FileReader 读取图片为 base64 格式
+2. **后端接收**：接收 base64 数据并直接透传给 AI 服务
+3. **AI 生成**：AI 返回的图片 buffer 转换为 base64 data URL
+4. **前端显示**：直接显示 base64 图片
+
+### 数据格式
 
 ```javascript
-const fileName = `${timestamp}-${random}${ext}`;
-// 示例: 1703123456789-123456789.jpg
-```
+// 前端上传的图片格式
+{
+  data: 'data:image/jpeg;base64,...',
+  mimeType: 'image/jpeg',
+  name: 'example.jpg'
+}
 
-### 访问 URL 格式
-
-```
-https://{bucket}.cos.{region}.myqcloud.com/{folder}/{filename}
-```
-
-示例：
-```
-https://banana-ai-1234567890.cos.ap-guangzhou.myqcloud.com/uploads/1703123456789-123456789.jpg
+// 后端返回的图片格式
+{
+  imageUrl: 'data:image/png;base64,...'
+}
 ```
 
 ## 依赖包变更
@@ -165,13 +156,14 @@ https://banana-ai-1234567890.cos.ap-guangzhou.myqcloud.com/uploads/1703123456789
 
 - `mongoose` - MongoDB ORM
 - `koa-static` - 本地静态文件服务
+- `cos-nodejs-sdk-v5` - 腾讯云 COS SDK（不再需要）
+- `axios` - HTTP 客户端（不再需要）
 
 ### 新增的依赖
 
 - `sequelize` - MySQL ORM
 - `mysql2` - MySQL 驱动
-- `cos-nodejs-sdk-v5` - 腾讯云 COS SDK
-- `axios` - HTTP 客户端（用于下载图片）
+- `@google/genai` - Google GenAI SDK
 
 ## 环境变量要求
 
@@ -185,18 +177,19 @@ MYSQL_DATABASE
 MYSQL_USERNAME
 MYSQL_PASSWORD
 
-# COS
-TENCENT_SECRET_ID
-TENCENT_SECRET_KEY
-COS_BUCKET
-COS_REGION
-COS_BASE_URL
+# Google GenAI
+GOOGLE_GENAI_API_KEY
 ```
 
 ### 移除的环境变量
 
 ```bash
-MONGODB_URI  # 不再需要
+MONGODB_URI           # 不再需要
+TENCENT_SECRET_ID     # 不再需要
+TENCENT_SECRET_KEY    # 不再需要
+COS_BUCKET           # 不再需要
+COS_REGION           # 不再需要
+COS_BASE_URL         # 不再需要
 ```
 
 ## API 响应变化
@@ -221,7 +214,7 @@ MONGODB_URI  # 不再需要
 }
 ```
 
-### 图片 URL
+### 图片数据
 
 ```javascript
 // 改造前
@@ -231,40 +224,40 @@ MONGODB_URI  # 不再需要
 
 // 改造后
 {
-  "imageUrl": "https://banana-ai-1234567890.cos.ap-guangzhou.myqcloud.com/generated/1703123456789-123456789.jpg"  // COS URL
+  "imageUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."  // base64 data URL
 }
 ```
 
 ## 部署前准备清单
 
-### 1. 腾讯云资源准备
+### 1. 数据库准备
 
-- [ ] 创建 MySQL 实例
+- [ ] 安装 MySQL 服务
 - [ ] 创建数据库 `banana_ai`
-- [ ] 配置 MySQL 安全组规则
-- [ ] 创建 COS 存储桶
-- [ ] 配置存储桶访问权限为"公有读私有写"
-- [ ] 配置 COS 跨域访问（CORS）
-- [ ] 创建 API 密钥（SecretId 和 SecretKey）
+- [ ] 配置数据库用户权限
 
-### 2. 环境配置
+### 2. API 密钥准备
+
+- [ ] 获取 Google GenAI API Key
+
+### 3. 环境配置
 
 - [ ] 创建 `.env` 文件
 - [ ] 配置所有必需的环境变量
 - [ ] 验证 MySQL 连接
-- [ ] 验证 COS 上传功能
+- [ ] 验证 Google GenAI API
 
-### 3. 应用部署
+### 4. 应用部署
 
 - [ ] 安装依赖：`npm install`
 - [ ] 测试数据库连接
-- [ ] 测试 COS 上传
+- [ ] 测试 AI 图片生成
 - [ ] 启动应用：`npm run dev` 或 `npm start`
 
-### 4. 验证测试
+### 5. 验证测试
 
 - [ ] 用户注册/登录
-- [ ] 图片上传到 COS
+- [ ] 图片上传（内存处理）
 - [ ] AI 生成图片
 - [ ] 查看历史记录
 - [ ] 积分兑换
@@ -278,31 +271,29 @@ MONGODB_URI  # 不再需要
 - 配置数据库连接池参数
 - 定期备份数据库
 
-### 2. COS 优化
+### 2. 图片处理优化
 
-- 配置 CDN 加速
-- 使用生命周期管理清理过期文件
-- 监控存储使用量和成本
+- 实现前端图片压缩
+- 限制图片大小和分辨率
+- 优化 base64 数据传输
 
 ### 3. 安全性增强
 
-- 使用子账号密钥
-- 配置最小权限策略
-- 启用 COS 访问日志
-- 定期轮换密钥
+- 保护 API 密钥安全
+- 实现请求频率限制
+- 添加图片内容检测
 
 ### 4. 性能优化
 
-- 实现图片压缩和裁剪
 - 添加缓存层（Redis）
 - 使用队列处理异步任务
-- 实现图片懒加载
+- 优化数据库查询
 
 ### 5. 监控和日志
 
 - 配置应用性能监控
 - 设置 MySQL 慢查询监控
-- 监控 COS 使用情况
+- 监控 AI API 调用情况
 - 配置告警规则
 
 ## 常见问题
@@ -312,24 +303,24 @@ MONGODB_URI  # 不再需要
 A: 需要编写数据迁移脚本：
 1. 从 MongoDB 导出数据
 2. 转换数据格式（ObjectId → Integer ID）
-3. 将图片从本地上传到 COS
-4. 更新数据库中的图片 URL
-5. 导入数据到 MySQL
+3. 导入数据到 MySQL
+4. 注意：历史图片 URL 需要特殊处理
 
-### Q2: 如何处理大文件上传？
+### Q2: 为什么不保存图片到服务器？
 
-A: 可以考虑：
-1. 实现分片上传
-2. 使用 COS 的分块上传接口
-3. 增加文件大小限制配置
+A: 采用内存处理方式的优势：
+1. 节省服务器存储空间
+2. 不需要云存储服务，降低成本
+3. 更快的响应速度
+4. 更好的隐私保护
 
-### Q3: COS 费用如何计算？
+### Q3: base64 图片数据会不会太大？
 
-A: COS 按以下维度计费：
-- 存储容量（GB/月）
-- 请求次数
-- 流量（下行流量）
-建议查看腾讯云 COS 计费说明
+A: 注意事项：
+1. base64 会比原始图片大约 33%
+2. 建议限制图片大小（如 5MB）
+3. 可以在前端进行图片压缩
+4. 适合中小型图片处理
 
 ### Q4: 如何回滚到 MongoDB 版本？
 
@@ -343,7 +334,8 @@ npm install  # 重新安装依赖
 
 - 查看 [ENV_CONFIG.md](./ENV_CONFIG.md) 了解详细配置
 - 查看 [README.md](./README.md) 了解项目架构
-- 腾讯云技术支持：https://cloud.tencent.com/document
+- MySQL 文档：https://dev.mysql.com/doc/
+- Google GenAI 文档：https://ai.google.dev/
 
 ## 改造完成时间
 

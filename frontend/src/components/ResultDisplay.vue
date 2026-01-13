@@ -34,13 +34,12 @@
       </div>
       
       <div class="flex space-x-2">
-        <a
-          :href="result.imageUrl"
-          download
+        <button
+          @click="downloadImage"
           class="flex-1 bg-primary hover:bg-primary-600 text-white text-center py-2 rounded-lg transition"
         >
           下载图片
-        </a>
+        </button>
         <button
           @click="regenerate"
           class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded-lg transition"
@@ -63,6 +62,17 @@ export default {
   methods: {
     regenerate() {
       this.$emit('regenerate');
+    },
+    downloadImage() {
+      if (!this.result || !this.result.imageUrl) return;
+      
+      // 创建一个临时链接来下载 base64 图片
+      const link = document.createElement('a');
+      link.href = this.result.imageUrl;
+      link.download = `nano-banana-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   }
 };

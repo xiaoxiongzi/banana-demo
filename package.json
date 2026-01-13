@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "install-all": "cd backend && npm install && cd ../frontend && npm install",
+    "install-all": "cd backend && yarn && cd ../frontend && yarn",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run serve",

@@ -42,7 +42,7 @@
         :key="index"
         class="relative group"
       >
-        <img :src="image" alt="上传的图片" class="w-full h-24 object-cover rounded-lg" />
+        <img :src="image.data" alt="上传的图片" class="w-full h-24 object-cover rounded-lg" />
         <button
           @click="removeImage(index)"
           class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
@@ -56,7 +56,6 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import { uploadImages } from '@/api/upload';
 
 export default {
   name: 'ImageUploader',
@@ -94,20 +93,28 @@ export default {
       this.uploading = true;
       
       try {
-        const formData = new FormData();
-        files.forEach(file => {
-          formData.append('images', file);
+        // 直接在前端内存中读取图片为 base64
+        const imagePromises = files.map(file => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              resolve({
+                data: e.target.result, // base64 data URL
+                mimeType: file.type,
+                name: file.name
+              });
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
         });
         
-        const response = await uploadImages(formData);
-        
-        if (response.success) {
-          const newImages = [...this.images, ...response.data.files];
-          this.$store.dispatch('generation/updateInputImages', newImages);
-          this.$store.dispatch('ui/showSuccess', '图片上传成功');
-        }
+        const imageData = await Promise.all(imagePromises);
+        const newImages = [...this.images, ...imageData];
+        this.$store.dispatch('generation/updateInputImages', newImages);
+        this.$store.dispatch('ui/showSuccess', '图片加载成功');
       } catch (error) {
-        this.$store.dispatch('ui/showError', error.message || '图片上传失败');
+        this.$store.dispatch('ui/showError', error.message || '图片加载失败');
       } finally {
         this.uploading = false;
         event.target.value = '';

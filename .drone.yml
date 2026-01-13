@@ -141,7 +141,6 @@ steps:
       exclude:
         - backend/node_modules/**/*
         - backend/.git/**/*
-        - backend/uploads/**/*
       strip_components: 1
 
   - name: transfer-compose
@@ -170,14 +169,6 @@ steps:
         from_secret: mysql_username
       MYSQL_PASSWORD:
         from_secret: mysql_password
-      TENCENT_SECRET_ID:
-        from_secret: tencent_secret_id
-      TENCENT_SECRET_KEY:
-        from_secret: tencent_secret_key
-      COS_BUCKET:
-        from_secret: cos_bucket
-      COS_REGION:
-        from_secret: cos_region
       GOOGLE_GENAI_API_KEY:
         from_secret: google_genai_api_key
       JWT_SECRET:
@@ -195,10 +186,6 @@ steps:
         - MYSQL_DATABASE
         - MYSQL_USERNAME
         - MYSQL_PASSWORD
-        - TENCENT_SECRET_ID
-        - TENCENT_SECRET_KEY
-        - COS_BUCKET
-        - COS_REGION
         - GOOGLE_GENAI_API_KEY
         - JWT_SECRET
       script:
@@ -208,10 +195,6 @@ steps:
         - echo "MYSQL_DATABASE=$MYSQL_DATABASE" >> .env
         - echo "MYSQL_USERNAME=$MYSQL_USERNAME" >> .env
         - echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> .env
-        - echo "TENCENT_SECRET_ID=$TENCENT_SECRET_ID" >> .env
-        - echo "TENCENT_SECRET_KEY=$TENCENT_SECRET_KEY" >> .env
-        - echo "COS_BUCKET=$COS_BUCKET" >> .env
-        - echo "COS_REGION=$COS_REGION" >> .env
         - echo "GOOGLE_GENAI_API_KEY=$GOOGLE_GENAI_API_KEY" >> .env
         - echo "JWT_SECRET=$JWT_SECRET" >> .env
         - docker-compose up -d --build backend

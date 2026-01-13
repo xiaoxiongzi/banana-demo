@@ -2,14 +2,7 @@ const Router = require('koa-router');
 const { GenerationHistory, User } = require('../models');
 const { auth } = require('../middleware/auth');
 const { success, error } = require('../utils/response');
-// const { uploadFile, generateFileName } = require('../config/cos');
-const { generateFileName } = require('../config/cos'); // Only import utility
-const axios = require('axios');
 const { GoogleGenAI } = require('@google/genai');
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
-const writeFile = util.promisify(fs.writeFile);
 
 const router = new Router({ prefix: '/api/generate' });
 
@@ -33,46 +26,38 @@ const MODEL_CREDITS = {
 };
 
 /**
- * Fetch image from URL and convert to base64
- * @param {string} url 
+ * Process image data from frontend
+ * @param {Object} imageData - Image data object with data (base64 data URL) and mimeType
  * @returns {Promise<{mimeType: string, data: string}>}
  */
-const fetchImageAsBase64 = async (url) => {
-  // 处理本地图片路径 (e.g. /uploads/xxx.jpg)
-  if (url.startsWith('/')) {
-    const fs = require('fs');
-    const path = require('path');
-    const localPath = path.join(__dirname, '../../', url);
-    const data = fs.readFileSync(localPath).toString('base64');
-    // 简单的 MIME 类型推断
-    let mimeType = 'image/jpeg';
-    if (url.endsWith('.png')) mimeType = 'image/png';
-    else if (url.endsWith('.webp')) mimeType = 'image/webp';
-    return { mimeType, data };
+const processImageData = async (imageData) => {
+  // 前端传来的是 { data: 'data:image/jpeg;base64,xxx', mimeType: 'image/jpeg', name: 'xxx.jpg' }
+  // 需要提取纯 base64 数据
+  if (imageData.data && imageData.data.startsWith('data:')) {
+    // 移除 data URL 前缀
+    const base64Data = imageData.data.split(',')[1];
+    return {
+      mimeType: imageData.mimeType || 'image/jpeg',
+      data: base64Data
+    };
   }
-
-  const response = await axios.get(url, { responseType: 'arraybuffer' });
-  const mimeType = response.headers['content-type'] || 'image/jpeg';
-  const data = Buffer.from(response.data).toString('base64');
-  return { mimeType, data };
+  
+  // 如果已经是纯 base64，直接返回
+  return {
+    mimeType: imageData.mimeType || 'image/jpeg',
+    data: imageData.data
+  };
 };
 
 /**
- * Save buffer to local file
+ * Convert buffer to base64 data URL
  * @param {Buffer} buffer 
- * @param {string} fileName 
- * @returns {Promise<string>}
+ * @param {string} mimeType 
+ * @returns {string}
  */
-const saveToLocal = async (buffer, fileName) => {
-  const uploadDir = path.join(__dirname, '../../uploads/generated');
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-  const filePath = path.join(uploadDir, fileName);
-  await writeFile(filePath, buffer);
-  
-  // Return relative path or full URL depending on how you serve static files
-  return `/uploads/generated/${fileName}`;
+const bufferToDataURL = (buffer, mimeType = 'image/png') => {
+  const base64Data = buffer.toString('base64');
+  return `data:${mimeType};base64,${base64Data}`;
 };
 
 /**
@@ -121,14 +106,14 @@ router.post('/', async (ctx) => { // Removed 'auth' middleware
     // Prepare contents
     const parts = [{ text: prompt }];
 
-    // Handle input images
+    // Handle input images (now receiving base64 data directly from frontend)
     if (inputImages && inputImages.length > 0) {
-      for (const imgUrl of inputImages) {
+      for (const imageData of inputImages) {
         try {
-          const imagePart = await fetchImageAsBase64(imgUrl);
+          const imagePart = await processImageData(imageData);
           parts.push({ inlineData: imagePart });
         } catch (err) {
-          console.error('Failed to fetch input image:', imgUrl, err);
+          console.error('Failed to process input image:', err);
           // Continue or fail? Let's warn but continue if possible, or maybe fail. 
           // If input image is critical, we should probably fail.
         }
@@ -142,27 +127,29 @@ router.post('/', async (ctx) => { // Removed 'auth' middleware
       generateConfig.aspectRatio = aspectRatio;
     }
 
-    console.log(`Generating with model: ${mappedModel}, config:`, generateConfig);
+    console.log(`Generating with model: ${mappedModel}, aspectRatio: ${aspectRatio}`);
 
     const response = await genai.models.generateContent({
       model: mappedModel,
-      contents: parts, // New SDK expects 'contents' which can be array of parts or just text
+      contents: [{ role: 'user', parts }], // Correct format: array of content objects with role and parts
       config: generateConfig,
     });
 
 
-    // Extract image
+    // Extract image and convert to data URL
     let outputImage = null;
+    
     const candidates = response.candidates;
     if (candidates && candidates.length > 0) {
       const parts = candidates[0].content.parts;
+      
       for (const part of parts) {
         if (part.inlineData) {
            const buffer = Buffer.from(part.inlineData.data, 'base64');
-           const fileName = generateFileName('generated.png'); // Usually PNG
+           const mimeType = part.inlineData.mimeType || 'image/png';
            
-           // CHANGE: Save to local instead of COS
-           outputImage = await saveToLocal(buffer, fileName);
+           // 直接返回 base64 data URL，不保存到本地
+           outputImage = bufferToDataURL(buffer, mimeType);
            
            break;
         }
@@ -170,6 +157,7 @@ router.post('/', async (ctx) => { // Removed 'auth' middleware
     }
 
     if (!outputImage) {
+      console.error('No image generated in response');
       throw new Error('No image generated in response');
     }
 

@@ -1,4 +1,4 @@
-# 腾讯云 MySQL + COS 环境变量配置指南
+# MySQL 环境变量配置指南
 
 ## 环境变量配置
 
@@ -19,14 +19,19 @@ JWT_SECRET=your_jwt_secret_key_change_this_in_production
 JWT_EXPIRES_IN=7d
 ```
 
-### 3. 腾讯云 MySQL 数据库配置
-
-在腾讯云控制台获取以下信息：
-- 进入 **云数据库 MySQL** -> **实例列表**
-- 点击实例 ID 查看连接信息
+### 3. Google GenAI API 配置
 
 ```bash
-MYSQL_HOST=your-mysql-host.tencentcdb.com
+GOOGLE_GENAI_API_KEY=your_google_genai_api_key
+```
+
+**配置说明：**
+- `GOOGLE_GENAI_API_KEY`: Google GenAI API 密钥，用于 AI 图片生成
+
+### 4. MySQL 数据库配置
+
+```bash
+MYSQL_HOST=localhost
 MYSQL_PORT=3306
 MYSQL_DATABASE=banana_ai
 MYSQL_USERNAME=root
@@ -34,100 +39,24 @@ MYSQL_PASSWORD=your_mysql_password
 ```
 
 **配置说明：**
-- `MYSQL_HOST`: 腾讯云 MySQL 实例的内网或外网地址
+- `MYSQL_HOST`: MySQL 服务器地址
 - `MYSQL_PORT`: 默认为 3306
-- `MYSQL_DATABASE`: 需要提前在 MySQL 中创建的数据库名（如 `banana_ai`）
-- `MYSQL_USERNAME`: 数据库用户名，通常为 `root`
+- `MYSQL_DATABASE`: 数据库名（如 `banana_ai`）
+- `MYSQL_USERNAME`: 数据库用户名
 - `MYSQL_PASSWORD`: 数据库密码
 
-### 4. 腾讯云对象存储 COS 配置
-
-#### 4.1 获取 API 密钥
-
-- 进入 **访问管理** -> **API密钥管理**
-- 创建密钥，获取 `SecretId` 和 `SecretKey`
-
-#### 4.2 创建 COS 存储桶
-
-- 进入 **对象存储** -> **存储桶列表**
-- 创建存储桶，获取存储桶名称和所属地域
-
-```bash
-# 腾讯云 API 密钥
-TENCENT_SECRET_ID=your_secret_id_here
-TENCENT_SECRET_KEY=your_secret_key_here
-
-# COS 存储桶配置
-COS_BUCKET=banana-ai-1234567890
-COS_REGION=ap-guangzhou
-
-# COS 访问域名（可选，如不配置将自动生成）
-COS_BASE_URL=https://banana-ai-1234567890.cos.ap-guangzhou.myqcloud.com
-```
-
-**配置说明：**
-
-- `TENCENT_SECRET_ID` / `TENCENT_SECRET_KEY`: 在"访问管理-API密钥管理"中创建
-- `COS_BUCKET`: 存储桶名称格式为 `{自定义名称}-{APPID}`
-  - 示例：`banana-ai-1234567890`
-- `COS_REGION`: 可选地域包括：
-  - `ap-beijing` (北京)
-  - `ap-shanghai` (上海)
-  - `ap-guangzhou` (广州)
-  - `ap-chengdu` (成都)
-  - `ap-nanjing` (南京)
-  - `ap-hongkong` (香港)
-- `COS_BASE_URL`: COS 访问域名，格式为 `https://{Bucket}.cos.{Region}.myqcloud.com`
-
-## 腾讯云控制台配置步骤
+## 数据库配置步骤
 
 ### MySQL 数据库配置
 
-1. **创建 MySQL 实例**（如已有实例可跳过）
-   - 登录腾讯云控制台
-   - 进入"云数据库 MySQL"
-   - 点击"新建"创建实例
-   - 选择地域、规格等配置
-
-2. **创建数据库**
+1. **创建数据库**
    ```sql
    CREATE DATABASE banana_ai CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
 
-3. **配置安全组**
-   - 在实例详情页，配置安全组规则
-   - 允许应用服务器的 IP 访问 MySQL 端口（3306）
-
-4. **获取连接信息**
-   - 在实例列表中，点击实例 ID
-   - 查看"内网地址"或"外网地址"作为 `MYSQL_HOST`
-
-### COS 对象存储配置
-
-1. **创建存储桶**
-   - 登录腾讯云控制台
-   - 进入"对象存储 COS"
-   - 点击"创建存储桶"
-   - 填写存储桶名称，选择地域
-   - 访问权限选择"公有读私有写"
-
-2. **配置跨域访问 CORS**（如果前端需要直接访问）
-   - 进入存储桶配置
-   - 点击"安全管理" -> "跨域访问CORS设置"
-   - 添加规则：
-     - 来源 Origin: `*` 或指定前端域名
-     - 操作 Methods: `GET, POST, PUT, DELETE, HEAD`
-     - Allow-Headers: `*`
-     - Expose-Headers: `ETag`
-
-3. **获取 API 密钥**
-   - 进入"访问管理" -> "API密钥管理"
-   - 点击"新建密钥"
-   - 保存 `SecretId` 和 `SecretKey`（只显示一次，请妥善保管）
-
-4. **配置权限策略**（可选）
-   - 为不同的密钥配置最小权限策略
-   - 建议使用子账号密钥，而不是主账号密钥
+2. **配置数据库连接**
+   - 确保 MySQL 服务已启动
+   - 配置 `.env` 文件中的数据库连接信息
 
 ## 完整 .env 配置示例
 
@@ -141,19 +70,15 @@ MAX_FILE_SIZE=5242880
 JWT_SECRET=banana_ai_super_secret_key_2024
 JWT_EXPIRES_IN=7d
 
-# 腾讯云 MySQL 配置
-MYSQL_HOST=bj-cdb-xxxxx.sql.tencentcdb.com
+# Google GenAI API 配置
+GOOGLE_GENAI_API_KEY=your_google_genai_api_key_here
+
+# MySQL 配置
+MYSQL_HOST=localhost
 MYSQL_PORT=3306
 MYSQL_DATABASE=banana_ai
 MYSQL_USERNAME=root
 MYSQL_PASSWORD=YourStrongPassword123!
-
-# 腾讯云 COS 配置
-TENCENT_SECRET_ID=AKIDxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TENCENT_SECRET_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-COS_BUCKET=banana-ai-1234567890
-COS_REGION=ap-guangzhou
-COS_BASE_URL=https://banana-ai-1234567890.cos.ap-guangzhou.myqcloud.com
 ```
 
 ## 安全建议
@@ -161,21 +86,16 @@ COS_BASE_URL=https://banana-ai-1234567890.cos.ap-guangzhou.myqcloud.com
 1. **密钥安全**
    - 不要将 `.env` 文件提交到代码仓库
    - 使用 `.gitignore` 忽略 `.env` 文件
-   - 生产环境使用子账号密钥，配置最小权限
+   - 妥善保管 API 密钥
 
 2. **数据库安全**
    - 使用强密码
    - 限制访问 IP 白名单
    - 定期备份数据库
 
-3. **存储安全**
-   - COS 存储桶设置为"公有读私有写"
-   - 敏感文件可使用签名 URL 访问
-   - 定期检查存储桶访问日志
-
-4. **环境隔离**
+3. **环境隔离**
    - 开发环境和生产环境使用不同的配置
-   - 不同环境使用不同的数据库和存储桶
+   - 不同环境使用不同的数据库
 
 ## 启动应用
 
@@ -207,28 +127,20 @@ npm start
 ### MySQL 连接失败
 
 - 检查 `MYSQL_HOST` 和端口是否正确
-- 确认安全组规则是否允许访问
 - 验证用户名和密码是否正确
 - 确认数据库是否已创建
+- 检查 MySQL 服务是否已启动
 
-### COS 上传失败
+### Google GenAI API 调用失败
 
-- 检查 `SecretId` 和 `SecretKey` 是否正确
-- 确认存储桶名称和地域是否正确
-- 检查存储桶权限配置
-- 查看服务器是否有网络访问权限
-
-### 图片无法访问
-
-- 确认 COS 存储桶访问权限为"公有读"
-- 检查 `COS_BASE_URL` 是否配置正确
-- 确认文件已成功上传到 COS
+- 检查 `GOOGLE_GENAI_API_KEY` 是否正确
+- 确认 API 密钥是否有效
+- 检查网络连接是否正常
 
 ## 更多帮助
 
-- [腾讯云 MySQL 文档](https://cloud.tencent.com/document/product/236)
-- [腾讯云 COS 文档](https://cloud.tencent.com/document/product/436)
+- [MySQL 文档](https://dev.mysql.com/doc/)
 - [Sequelize 文档](https://sequelize.org/)
-- [COS Node.js SDK 文档](https://cloud.tencent.com/document/product/436/8629)
+- [Google GenAI 文档](https://ai.google.dev/)
 
 
