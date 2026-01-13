@@ -6,6 +6,9 @@ const { GoogleGenAI } = require('@google/genai');
 
 const router = new Router({ prefix: '/api/generate' });
 
+console.log('GOOGLE_GENAI_API_KEY:', process.env.GOOGLE_GENAI_API_KEY);
+
+
 // Initialize Google GenAI Client
 const genai = new GoogleGenAI({ 
   apiKey: process.env.GOOGLE_GENAI_API_KEY,
