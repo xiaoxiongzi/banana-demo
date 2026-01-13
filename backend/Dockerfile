@@ -3,8 +3,8 @@ FROM node:18-alpine
 WORKDIR /app
 
 # 安装依赖
-COPY package*.json ./
-RUN npm install --production
+COPY package*.json yarn.lock ./
+RUN yarn install --production
 
 # 复制源码
 COPY . .
@@ -13,5 +13,5 @@ COPY . .
 EXPOSE 3000
 
 # 启动命令
-CMD ["npm", "start"]
+CMD ["yarn", "start"]
 

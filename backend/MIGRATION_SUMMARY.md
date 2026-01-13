@@ -249,10 +249,10 @@ COS_BASE_URL         # 不再需要
 
 ### 4. 应用部署
 
-- [ ] 安装依赖：`npm install`
+- [ ] 安装依赖：`yarn install`
 - [ ] 测试数据库连接
 - [ ] 测试 AI 图片生成
-- [ ] 启动应用：`npm run dev` 或 `npm start`
+- [ ] 启动应用：`yarn dev` 或 `yarn start`
 
 ### 5. 验证测试
 
@@ -327,7 +327,7 @@ A: 注意事项：
 A: 使用 Git 回滚：
 ```bash
 git checkout <commit-hash>  # 回滚到改造前的提交
-npm install  # 重新安装依赖
+yarn install  # 重新安装依赖
 ```
 
 ## 技术支持

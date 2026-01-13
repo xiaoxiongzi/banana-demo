@@ -104,13 +104,13 @@ MYSQL_PASSWORD=YourStrongPassword123!
 ```bash
 # 安装依赖
 cd backend
-npm install
+yarn install
 
 # 开发模式启动
-npm run dev
+yarn dev
 
 # 生产模式启动
-npm start
+yarn start
 ```
 
 ## 数据库表结构

@@ -19,13 +19,13 @@ echo "📦 检查依赖..."
 # 检查后端依赖
 if [ ! -d "backend/node_modules" ]; then
     echo "📥 安装后端依赖..."
-    cd backend && npm install && cd ..
+    cd backend && yarn install && cd ..
 fi
 
 # 检查前端依赖
 if [ ! -d "frontend/node_modules" ]; then
     echo "📥 安装前端依赖..."
-    cd frontend && npm install && cd ..
+    cd frontend && yarn install && cd ..
 fi
 
 echo ""
@@ -39,5 +39,5 @@ echo "💡 提示: 按 Ctrl+C 停止服务"
 echo ""
 
 # 启动服务
-npm run dev
+yarn dev
 

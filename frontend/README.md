@@ -24,17 +24,17 @@
 
 1. 安装依赖：
 ```bash
-npm install
+yarn install
 ```
 
 2. 启动开发服务器：
 ```bash
-npm run serve
+yarn serve
 ```
 
 3. 构建生产版本：
 ```bash
-npm run build
+yarn build
 ```
 
 ## 项目结构

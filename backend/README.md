@@ -46,7 +46,7 @@ AI 生成图片 → 下载到内存 → COS 存储 → 返回 COS URL → 保存
 ### 1. 安装依赖
 
 ```bash
-npm install
+yarn install
 ```
 
 ### 2. 配置腾讯云服务
@@ -104,13 +104,13 @@ COS_BASE_URL=https://your-bucket.cos.ap-guangzhou.myqcloud.com
 开发模式：
 
 ```bash
-npm run dev
+yarn dev
 ```
 
 生产模式：
 
 ```bash
-npm start
+yarn start
 ```
 
 ## API 端点

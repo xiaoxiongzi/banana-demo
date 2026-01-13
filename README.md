@@ -48,7 +48,7 @@
 ### 环境要求
 - Node.js >= 14.x
 - MongoDB >= 4.x
-- npm 或 yarn
+- yarn
 
 ### 安装步骤
 
@@ -61,7 +61,7 @@ cd banana-demo
 2. **安装后端依赖**
 ```bash
 cd backend
-npm install
+yarn install
 ```
 
 3. **配置后端环境变量**
@@ -81,10 +81,10 @@ mongod
 5. **启动后端服务**
 ```bash
 # 开发模式
-npm run dev
+yarn dev
 
 # 或生产模式
-npm start
+yarn start
 ```
 
 后端服务将运行在 http://localhost:3000
@@ -92,12 +92,12 @@ npm start
 6. **安装前端依赖**
 ```bash
 cd ../frontend
-npm install
+yarn install
 ```
 
 7. **启动前端服务**
 ```bash
-npm run serve
+yarn serve
 ```
 
 前端服务将运行在 http://localhost:8080
@@ -192,14 +192,14 @@ banana-demo/
 ### 后端部署
 ```bash
 cd backend
-npm run build  # 如果有构建步骤
-npm start
+yarn build  # 如果有构建步骤
+yarn start
 ```
 
 ### 前端部署
 ```bash
 cd frontend
-npm run build
+yarn build
 # 将 dist/ 目录部署到静态服务器
 ```
 

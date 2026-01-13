@@ -16,7 +16,7 @@
 
 ```bash
 cd backend
-npm install
+yarn install
 ```
 
 ### 步骤 2: 配置环境变量
@@ -62,10 +62,10 @@ COLLATE utf8mb4_unicode_ci;
 
 ```bash
 # 开发模式（带热重载）
-npm run dev
+yarn dev
 
 # 或生产模式
-npm start
+yarn start
 ```
 
 看到以下输出说明启动成功：
@@ -195,7 +195,7 @@ Error: listen EADDRINUSE: address already in use :::3000
 **解决方法**：
 ```bash
 # 方法 1: 修改端口
-PORT=3001 npm run dev
+PORT=3001 yarn dev
 
 # 方法 2: 杀死占用端口的进程
 lsof -ti:3000 | xargs kill -9
@@ -235,7 +235,7 @@ SHOW TABLES;
 
 ### 开发模式特性
 
-运行 `npm run dev` 时：
+运行 `yarn dev` 时：
 - 代码变更自动重启（nodemon）
 - 数据库 SQL 查询日志输出到控制台
 - 详细的错误堆栈信息
@@ -244,7 +244,7 @@ SHOW TABLES;
 
 ```bash
 # 启用详细日志
-DEBUG=* npm run dev
+DEBUG=* yarn dev
 
 # 仅启动不自动重启
 node src/app.js
@@ -294,13 +294,13 @@ JWT_SECRET=use_a_very_strong_random_secret_here
 ### 启动命令
 
 ```bash
-npm start
+yarn start
 ```
 
 或使用 PM2：
 
 ```bash
-npm install -g pm2
+yarn global add pm2
 pm2 start src/app.js --name banana-api
 ```
 

@@ -25,11 +25,11 @@ chmod +x start-dev.sh
 ```bash
 # 后端
 cd backend
-npm install
+yarn install
 
 # 前端
 cd ../frontend
-npm install
+yarn install
 ```
 
 ### 2. 配置环境变量
@@ -44,14 +44,14 @@ cp .env.example .env
 #### 启动后端
 ```bash
 cd backend
-npm run dev
+yarn dev
 ```
 后端将运行在 http://localhost:3000
 
 #### 启动前端（新终端窗口）
 ```bash
 cd frontend
-npm run serve
+yarn serve
 ```
 前端将运行在 http://localhost:8080
 

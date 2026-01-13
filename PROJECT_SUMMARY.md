@@ -161,10 +161,10 @@ banana-demo/
 ### 启动项目
 ```bash
 # 安装依赖
-npm run install-all
+yarn install-all
 
 # 启动开发环境
-npm run dev
+yarn dev
 
 # 或使用脚本
 ./start-dev.sh

@@ -54,8 +54,8 @@ steps:
     image: node:18-alpine
     commands:
       - cd frontend
-      - npm install
-      - npm run build
+      - yarn install
+      - yarn build
 
   - name: rebuild-cache
     image: drillster/drone-volume-cache
