@@ -9,6 +9,12 @@ services:
       - "5656:3000"
     env_file:
       - .env
+    environment:
+      - HTTP_PROXY=http://host.docker.internal:7890
+      - HTTPS_PROXY=http://host.docker.internal:7890
+      - NO_PROXY=localhost,127.0.0.1,banana-frontend,banana-backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./backend/uploads:/app/uploads
     networks:
