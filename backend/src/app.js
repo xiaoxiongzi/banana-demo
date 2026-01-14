@@ -1,4 +1,14 @@
 require('dotenv').config();
+
+// 配置全局 HTTP 代理（如果设置了 HTTP_PROXY 环境变量）
+const proxyUrl = process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
+if (proxyUrl) {
+  const { ProxyAgent, setGlobalDispatcher } = require('undici');
+  const proxyAgent = new ProxyAgent(proxyUrl);
+  setGlobalDispatcher(proxyAgent);
+  console.log(`🌐 已启用 HTTP 代理: ${proxyUrl}`);
+}
+
 const Koa = require('koa');
 const cors = require('@koa/cors');
 const { koaBody } = require('koa-body');
