@@ -1,29 +1,5 @@
 kind: pipeline
 type: docker
-name: default-check
-
-clone:
-  retries: 3
-  timeout: 30s
-
-trigger:
-  branch:
-    - main
-  event:
-    - push
-    - custom
-
-steps:
-  - name: check
-    image: alpine
-    pull: if-not-exists
-    commands:
-      - echo "Configuration loaded successfully."
-      - echo "If you see only this pipeline, it means other pipelines were skipped due to 'paths' filters."
-
----
-kind: pipeline
-type: docker
 name: frontend-deploy
 
 clone:
@@ -121,6 +97,9 @@ steps:
 kind: pipeline
 type: docker
 name: backend-deploy
+
+depends_on:
+  - frontend-deploy
 
 clone:
   retries: 3
