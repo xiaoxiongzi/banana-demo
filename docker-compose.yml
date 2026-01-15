@@ -10,8 +10,11 @@ services:
     env_file:
       - .env
     environment:
+      - http_proxy=http://host.docker.internal:7890
+      - https_proxy=http://host.docker.internal:7890
       - HTTP_PROXY=http://host.docker.internal:7890
       - HTTPS_PROXY=http://host.docker.internal:7890
+      - no_proxy=localhost,127.0.0.1,banana-frontend,banana-backend
       - NO_PROXY=localhost,127.0.0.1,banana-frontend,banana-backend
     extra_hosts:
       - "host.docker.internal:host-gateway"
