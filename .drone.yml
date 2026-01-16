@@ -162,6 +162,8 @@ steps:
         from_secret: mysql_password
       GOOGLE_GENAI_API_KEY:
         from_secret: google_genai_api_key
+      GOOGLE_GENAI_BASE_URL:
+        from_secret: google_genai_base_url
       JWT_SECRET:
         from_secret: jwt_secret
     settings:
@@ -178,6 +180,7 @@ steps:
         - MYSQL_USERNAME
         - MYSQL_PASSWORD
         - GOOGLE_GENAI_API_KEY
+        - GOOGLE_GENAI_BASE_URL
         - JWT_SECRET
       script:
         - cd /opt/banana-app
@@ -187,5 +190,6 @@ steps:
         - echo "MYSQL_USERNAME=$MYSQL_USERNAME" >> .env
         - echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> .env
         - echo "GOOGLE_GENAI_API_KEY=$GOOGLE_GENAI_API_KEY" >> .env
+        - echo "GOOGLE_GENAI_BASE_URL=$GOOGLE_GENAI_BASE_URL" >> .env
         - echo "JWT_SECRET=$JWT_SECRET" >> .env
         - docker-compose up -d --build backend
