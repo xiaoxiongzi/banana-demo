@@ -1,17 +1,14 @@
 const Router = require('koa-router');
-const { GenerationHistory, User } = require('../models');
-const { auth } = require('../middleware/auth');
+const { GenerationHistory } = require('../models');
 const { success, error } = require('../utils/response');
 const { GoogleGenAI } = require('@google/genai');
-
 const router = new Router({ prefix: '/api/generate' });
 
-console.log('GOOGLE_GENAI_API_KEY:', process.env.GOOGLE_GENAI_API_KEY);
-
-
 // Initialize Google GenAI Client
+const googleGenAIBaseUrl = process.env.GOOGLE_GENAI_BASE_URL;
 const genai = new GoogleGenAI({ 
   apiKey: process.env.GOOGLE_GENAI_API_KEY,
+  ...(googleGenAIBaseUrl ? { httpOptions: { baseUrl: googleGenAIBaseUrl } } : {}),
 });
 
 // Model Mapping
@@ -21,7 +18,7 @@ const MODEL_MAPPING = {
   'banana-pro-stable': 'gemini-3-pro-image-preview', 
 };
 
-// Credit Costs (Mock/Estimation)
+// Credit Costs
 const MODEL_CREDITS = {
   'banana': 10,
   'banana-pro': 20,
@@ -29,76 +26,91 @@ const MODEL_CREDITS = {
 };
 
 /**
- * Process image data from frontend
- * @param {Object} imageData - Image data object with data (base64 data URL) and mimeType
- * @returns {Promise<{mimeType: string, data: string}>}
+ * 处理前端传来的图片数据，提取纯 base64
  */
-const processImageData = async (imageData) => {
-  // 前端传来的是 { data: 'data:image/jpeg;base64,xxx', mimeType: 'image/jpeg', name: 'xxx.jpg' }
-  // 需要提取纯 base64 数据
-  if (imageData.data && imageData.data.startsWith('data:')) {
-    // 移除 data URL 前缀
-    const base64Data = imageData.data.split(',')[1];
-    return {
-      mimeType: imageData.mimeType || 'image/jpeg',
-      data: base64Data
-    };
+const processImageData = (imageData) => {
+  const mimeType = imageData.mimeType || 'image/jpeg';
+  // 如果是 data URL 格式，提取纯 base64
+  if (imageData.data?.startsWith('data:')) {
+    return { mimeType, data: imageData.data.split(',')[1] };
   }
-  
-  // 如果已经是纯 base64，直接返回
-  return {
-    mimeType: imageData.mimeType || 'image/jpeg',
-    data: imageData.data
-  };
+  return { mimeType, data: imageData.data };
 };
 
 /**
- * Convert buffer to base64 data URL
- * @param {Buffer} buffer 
- * @param {string} mimeType 
- * @returns {string}
+ * 将 base64 数据转换为 data URL
  */
-const bufferToDataURL = (buffer, mimeType = 'image/png') => {
-  const base64Data = buffer.toString('base64');
+const toDataURL = (base64Data, mimeType = 'image/png') => {
   return `data:${mimeType};base64,${base64Data}`;
+};
+
+/**
+ * 验证生成请求参数
+ */
+const validateGenerateRequest = (body) => {
+  const { prompt, model } = body;
+  if (!prompt) return 'Please provide a prompt';
+  if (!model) return 'Please select a model';
+  if (!MODEL_MAPPING[model]) return 'Invalid model selected';
+  return null;
+};
+
+/**
+ * 构建请求内容 parts
+ */
+const buildRequestParts = (prompt, inputImages = []) => {
+  const parts = [{ text: prompt }];
+  
+  for (const imageData of inputImages) {
+    const processed = processImageData(imageData);
+    parts.push({
+      inlineData: {
+        mimeType: processed.mimeType,
+        data: processed.data
+      }
+    });
+  }
+  
+  return parts;
+};
+
+/**
+ * 从 API 响应中提取生成的图片
+ */
+const extractImageFromResponse = (response) => {
+  // 尝试从 candidates 获取
+  const parts = response.candidates?.[0]?.content?.parts || response.parts || [];
+  
+  for (const part of parts) {
+    if (part.inlineData?.data) {
+      const { data, mimeType = 'image/png' } = part.inlineData;
+      return toDataURL(data, mimeType);
+    }
+  }
+  
+  return null;
 };
 
 /**
  * AI Image Generation
  * POST /api/generate
  */
-router.post('/', async (ctx) => { // Removed 'auth' middleware
+router.post('/', async (ctx) => {
   try {
     const { prompt, model, aspectRatio, inputImages } = ctx.request.body;
     
-    // Mock user for development
-    const user = ctx.state.user || {
-      id: 1,
-      credits: 1000,
-      save: async () => {} // Mock save
-    };
-    
-    // Validation
-    if (!prompt) {
+    // 参数验证
+    const validationError = validateGenerateRequest(ctx.request.body);
+    if (validationError) {
       ctx.status = 400;
-      ctx.body = error('Please provide a prompt');
-      return;
-    }
-    
-    if (!model) {
-      ctx.status = 400;
-      ctx.body = error('Please select a model');
-      return;
-    }
-    
-    const mappedModel = MODEL_MAPPING[model];
-    if (!mappedModel) {
-      ctx.status = 400;
-      ctx.body = error('Invalid model selected');
+      ctx.body = error(validationError);
       return;
     }
 
-    // Check credits
+    // Mock user for development
+    const user = ctx.state.user || { id: 1, credits: 1000, save: async () => {} };
+    
+    // 检查积分
     const creditsRequired = MODEL_CREDITS[model] || 10;
     if (user.credits < creditsRequired) {
       ctx.status = 400;
@@ -106,72 +118,27 @@ router.post('/', async (ctx) => { // Removed 'auth' middleware
       return;
     }
 
-    // Prepare contents
-    const parts = [{ text: prompt }];
-
-    // Handle input images (now receiving base64 data directly from frontend)
-    if (inputImages && inputImages.length > 0) {
-      for (const imageData of inputImages) {
-        try {
-          const imagePart = await processImageData(imageData);
-          parts.push({ inlineData: imagePart });
-        } catch (err) {
-          console.error('Failed to process input image:', err);
-          // Continue or fail? Let's warn but continue if possible, or maybe fail. 
-          // If input image is critical, we should probably fail.
-        }
-      }
-    }
-
-    // Call Google GenAI
-    // Note: aspectRatio might need to be in config
-    const generateConfig = {};
-    if (aspectRatio) {
-      generateConfig.aspectRatio = aspectRatio;
-    }
-
-    console.log(`Generating with model: ${mappedModel}, aspectRatio: ${aspectRatio}`);
-
+    // 调用 Google GenAI
     const response = await genai.models.generateContent({
-      model: mappedModel,
-      contents: [{ role: 'user', parts }], // Correct format: array of content objects with role and parts
-      config: generateConfig,
+      model: MODEL_MAPPING[model],
+      contents: buildRequestParts(prompt, inputImages),
+      config: { imageConfig: { aspectRatio: aspectRatio || '1:1' } },
     });
 
-
-    // Extract image and convert to data URL
-    let outputImage = null;
-    
-    const candidates = response.candidates;
-    if (candidates && candidates.length > 0) {
-      const parts = candidates[0].content.parts;
-      
-      for (const part of parts) {
-        if (part.inlineData) {
-           const buffer = Buffer.from(part.inlineData.data, 'base64');
-           const mimeType = part.inlineData.mimeType || 'image/png';
-           
-           // 直接返回 base64 data URL，不保存到本地
-           outputImage = bufferToDataURL(buffer, mimeType);
-           
-           break;
-        }
-      }
-    }
-
+    // 提取生成的图片
+    const outputImage = extractImageFromResponse(response);
     if (!outputImage) {
-      console.error('No image generated in response');
       throw new Error('No image generated in response');
     }
 
-    // Deduct credits
+    // 扣除积分
     user.credits -= creditsRequired;
     await user.save();
     
-    // Save history (only if real user, or try/catch if mock)
-    try {
-      if (user.id !== 1) { // Assuming mock user id is 1 and we skip DB
-        const history = await GenerationHistory.create({
+    // 保存历史记录（非 mock 用户）
+    if (user.id !== 1) {
+      try {
+        await GenerationHistory.create({
           userId: user.id,
           prompt,
           model,
@@ -181,24 +148,22 @@ router.post('/', async (ctx) => { // Removed 'auth' middleware
           creditsUsed: creditsRequired,
           status: 'completed'
         });
+      } catch (dbErr) {
+        console.warn('Failed to save history:', dbErr.message);
       }
-    } catch (dbErr) {
-      console.warn('Failed to save history (DB might not be connected):', dbErr.message);
     }
     
     ctx.body = success({
       imageUrl: outputImage,
       creditsUsed: creditsRequired,
       remainingCredits: user.credits,
-      historyId: 0 // Mock history ID
+      historyId: 0
     }, 'Image generated successfully');
     
   } catch (err) {
     console.error('Generation Error:', err);
-    // Enhance error message if it's from Google API
-    const message = err.message || 'Image generation failed';
     ctx.status = 500;
-    ctx.body = error(message);
+    ctx.body = error(err.message || 'Image generation failed');
   }
 });
 
