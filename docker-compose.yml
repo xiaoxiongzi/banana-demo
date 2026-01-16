@@ -9,6 +9,8 @@ services:
       - "5656:3000"
     env_file:
       - .env
+    volumes:
+      - ./backend/logs:/app/logs
     networks:
       - banana-network
 

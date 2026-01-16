@@ -2,6 +2,7 @@ const Router = require('koa-router');
 const { GenerationHistory } = require('../models');
 const { success, error } = require('../utils/response');
 const { GoogleGenAI } = require('@google/genai');
+const logger = require('../utils/logger');
 const router = new Router({ prefix: '/api/generate' });
 
 // Initialize Google GenAI Client
@@ -10,6 +11,10 @@ const genai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_GENAI_API_KEY,
   ...(googleGenAIBaseUrl ? { httpOptions: { baseUrl: googleGenAIBaseUrl } } : {}),
 });
+
+// 启动时打印配置信息
+logger.info(`🔧 GenAI Base URL: ${googleGenAIBaseUrl || '(default)'}`);
+logger.info(`🔑 API Key: ${process.env.GOOGLE_GENAI_API_KEY ? '***' + process.env.GOOGLE_GENAI_API_KEY.slice(-4) : '(not set)'}`);
 
 // Model Mapping
 const MODEL_MAPPING = {
@@ -118,12 +123,19 @@ router.post('/', async (ctx) => {
       return;
     }
 
+    // 打印请求信息
+    logger.info(`📝 Generate request - Model: ${model} (${MODEL_MAPPING[model]}), AspectRatio: ${aspectRatio || '1:1'}, Images: ${inputImages?.length || 0}`);
+    logger.debug(`📝 Prompt: ${prompt.substring(0, 100)}${prompt.length > 100 ? '...' : ''}`);
+
     // 调用 Google GenAI
+    const startTime = Date.now();
     const response = await genai.models.generateContent({
       model: MODEL_MAPPING[model],
       contents: buildRequestParts(prompt, inputImages),
       config: { imageConfig: { aspectRatio: aspectRatio || '1:1' } },
     });
+    const duration = Date.now() - startTime;
+    logger.info(`✅ Generation completed in ${duration}ms`);
 
     // 提取生成的图片
     const outputImage = extractImageFromResponse(response);
@@ -149,7 +161,7 @@ router.post('/', async (ctx) => {
           status: 'completed'
         });
       } catch (dbErr) {
-        console.warn('Failed to save history:', dbErr.message);
+        logger.warn(`Failed to save history: ${dbErr.message}`);
       }
     }
     
@@ -161,7 +173,10 @@ router.post('/', async (ctx) => {
     }, 'Image generated successfully');
     
   } catch (err) {
-    console.error('Generation Error:', err);
+    logger.error(`❌ Generation Error: ${err.message}`);
+    if (err.stack) {
+      logger.debug(`Stack: ${err.stack}`);
+    }
     ctx.status = 500;
     ctx.body = error(err.message || 'Image generation failed');
   }
@@ -200,7 +215,7 @@ router.get('/models', async (ctx) => {
     ctx.body = success(models, 'Models retrieved successfully');
     
   } catch (err) {
-    console.error('Get models error:', err);
+    logger.error(`Get models error: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || 'Failed to retrieve models');
   }

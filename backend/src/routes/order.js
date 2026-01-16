@@ -2,6 +2,7 @@ const Router = require('koa-router');
 const { Order, User } = require('../models');
 const { auth } = require('../middleware/auth');
 const { success, error } = require('../utils/response');
+const logger = require('../utils/logger');
 
 const router = new Router({ prefix: '/api/orders' });
 
@@ -101,7 +102,7 @@ router.post('/', auth, async (ctx) => {
     }
     
   } catch (err) {
-    console.error('创建订单错误:', err);
+    logger.error(`创建订单错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '创建订单失败');
   }
@@ -141,7 +142,7 @@ router.get('/', auth, async (ctx) => {
     }, '获取订单列表成功');
     
   } catch (err) {
-    console.error('获取订单错误:', err);
+    logger.error(`获取订单错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '获取订单列表失败');
   }
@@ -172,7 +173,7 @@ router.get('/:id', auth, async (ctx) => {
     ctx.body = success(order, '获取订单详情成功');
     
   } catch (err) {
-    console.error('获取订单详情错误:', err);
+    logger.error(`获取订单详情错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '获取订单详情失败');
   }
@@ -192,7 +193,7 @@ router.get('/packages/list', async (ctx) => {
     ctx.body = success(packages, '获取套餐列表成功');
     
   } catch (err) {
-    console.error('获取套餐列表错误:', err);
+    logger.error(`获取套餐列表错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '获取套餐列表失败');
   }

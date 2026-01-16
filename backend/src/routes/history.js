@@ -3,6 +3,7 @@ const { GenerationHistory } = require('../models');
 const { auth } = require('../middleware/auth');
 const { success, error } = require('../utils/response');
 const { sequelize } = require('../config/database');
+const logger = require('../utils/logger');
 
 const router = new Router({ prefix: '/api/history' });
 
@@ -40,7 +41,7 @@ router.get('/', auth, async (ctx) => {
     }, '获取生成历史成功');
     
   } catch (err) {
-    console.error('获取历史错误:', err);
+    logger.error(`获取历史错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '获取生成历史失败');
   }
@@ -71,7 +72,7 @@ router.get('/:id', auth, async (ctx) => {
     ctx.body = success(history, '获取历史详情成功');
     
   } catch (err) {
-    console.error('获取历史详情错误:', err);
+    logger.error(`获取历史详情错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '获取历史详情失败');
   }
@@ -104,7 +105,7 @@ router.delete('/:id', auth, async (ctx) => {
     ctx.body = success(null, '删除成功');
     
   } catch (err) {
-    console.error('删除历史错误:', err);
+    logger.error(`删除历史错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '删除历史记录失败');
   }
@@ -135,7 +136,7 @@ router.get('/stats/summary', auth, async (ctx) => {
     }, '获取统计信息成功');
     
   } catch (err) {
-    console.error('获取统计错误:', err);
+    logger.error(`获取统计错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '获取统计信息失败');
   }

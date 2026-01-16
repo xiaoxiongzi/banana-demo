@@ -1,8 +1,10 @@
+const logger = require('../utils/logger');
+
 const errorHandler = async (ctx, next) => {
   try {
     await next();
   } catch (err) {
-    console.error('错误:', err);
+    logger.error(`错误: ${err.message}`, { stack: err.stack });
     
     ctx.status = err.status || 500;
     ctx.body = {

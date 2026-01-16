@@ -1,12 +1,16 @@
 require('dotenv').config();
 
+// 日志模块
+const logger = require('./utils/logger');
+const { requestLogger } = require('./middleware/requestLogger');
+
 // 配置全局 HTTP 代理（如果设置了 HTTP_PROXY 环境变量）
 const proxyUrl = process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
 if (proxyUrl) {
   const { ProxyAgent, setGlobalDispatcher } = require('undici');
   const proxyAgent = new ProxyAgent(proxyUrl);
   setGlobalDispatcher(proxyAgent);
-  console.log(`🌐 已启用 HTTP 代理: ${proxyUrl}`);
+  logger.info(`🌐 已启用 HTTP 代理: ${proxyUrl}`);
 }
 
 const Koa = require('koa');
@@ -24,6 +28,7 @@ connectDB();
 // 中间件
 app.use(errorHandler);
 app.use(cors());
+app.use(requestLogger);
 app.use(koaBody());
 
 // 路由
@@ -49,13 +54,13 @@ app.use(router.routes()).use(router.allowedMethods());
 
 // 错误监听
 app.on('error', (err, ctx) => {
-  console.error('服务器错误:', err);
+  logger.error(`服务器错误: ${err.message}`, { stack: err.stack });
 });
 
 // 启动服务器
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 服务器运行在 http://localhost:${PORT}`);
+  logger.info(`🚀 服务器运行在 http://localhost:${PORT}`);
 });
 
 module.exports = app;

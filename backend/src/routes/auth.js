@@ -4,6 +4,7 @@ const { generateToken } = require('../utils/jwt');
 const { success, error } = require('../utils/response');
 const { auth } = require('../middleware/auth');
 const { Op } = require('sequelize');
+const logger = require('../utils/logger');
 
 const router = new Router({ prefix: '/api/auth' });
 
@@ -57,7 +58,7 @@ router.post('/register', async (ctx) => {
     }, '注册成功');
     
   } catch (err) {
-    console.error('注册错误:', err);
+    logger.error(`注册错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '注册失败');
   }
@@ -107,7 +108,7 @@ router.post('/login', async (ctx) => {
     }, '登录成功');
     
   } catch (err) {
-    console.error('登录错误:', err);
+    logger.error(`登录错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '登录失败');
   }
@@ -124,7 +125,7 @@ router.get('/profile', auth, async (ctx) => {
     ctx.body = success(user.toPublicJSON(), '获取用户信息成功');
     
   } catch (err) {
-    console.error('获取用户信息错误:', err);
+    logger.error(`获取用户信息错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '获取用户信息失败');
   }
@@ -167,7 +168,7 @@ router.put('/profile', auth, async (ctx) => {
     ctx.body = success(user.toPublicJSON(), '更新用户信息成功');
     
   } catch (err) {
-    console.error('更新用户信息错误:', err);
+    logger.error(`更新用户信息错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '更新用户信息失败');
   }

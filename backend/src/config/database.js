@@ -1,4 +1,5 @@
 const { Sequelize } = require('sequelize');
+const logger = require('../utils/logger');
 
 // 创建 Sequelize 实例
 const sequelize = new Sequelize(
@@ -16,7 +17,7 @@ const sequelize = new Sequelize(
       acquire: 30000,
       idle: 10000
     },
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    logging: process.env.NODE_ENV === 'development' ? (msg) => logger.debug(msg) : false,
     define: {
       timestamps: true,
       underscored: false,
@@ -31,15 +32,15 @@ const sequelize = new Sequelize(
 const connectDB = async () => {
   try {
     await sequelize.authenticate();
-    console.log('✅ MySQL 连接成功');
+    logger.info('✅ MySQL 连接成功');
     
     // 同步模型到数据库（开发环境）
     if (process.env.NODE_ENV === 'development') {
       await sequelize.sync({ alter: false });
-      console.log('✅ 数据库模型同步完成');
+      logger.info('✅ 数据库模型同步完成');
     }
   } catch (error) {
-    console.error('❌ MySQL 连接失败:', error.message);
+    logger.error(`❌ MySQL 连接失败: ${error.message}`);
     // process.exit(1);
   }
 };

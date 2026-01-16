@@ -2,6 +2,7 @@ const Router = require('koa-router');
 const { RedeemCode, User } = require('../models');
 const { auth } = require('../middleware/auth');
 const { success, error } = require('../utils/response');
+const logger = require('../utils/logger');
 
 const router = new Router({ prefix: '/api/credits' });
 
@@ -19,7 +20,7 @@ router.get('/', auth, async (ctx) => {
     }, '获取积分成功');
     
   } catch (err) {
-    console.error('获取积分错误:', err);
+    logger.error(`获取积分错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '获取积分失败');
   }
@@ -82,7 +83,7 @@ router.post('/redeem', auth, async (ctx) => {
     }, `成功兑换 ${redeemCode.credits} 积分`);
     
   } catch (err) {
-    console.error('兑换积分错误:', err);
+    logger.error(`兑换积分错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '兑换积分失败');
   }
@@ -135,7 +136,7 @@ router.post('/generate-code', auth, async (ctx) => {
     }, '兑换码生成成功');
     
   } catch (err) {
-    console.error('生成兑换码错误:', err);
+    logger.error(`生成兑换码错误: ${err.message}`);
     ctx.status = 500;
     ctx.body = error(err.message || '生成兑换码失败');
   }
