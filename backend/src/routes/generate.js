@@ -3,6 +3,7 @@ const { GenerationHistory } = require('../models');
 const { success, error } = require('../utils/response');
 const { GoogleGenAI } = require('@google/genai');
 const logger = require('../utils/logger');
+const { auth } = require('../middleware/auth');
 const router = new Router({ prefix: '/api/generate' });
 
 // Initialize Google GenAI Client
@@ -99,8 +100,9 @@ const extractImageFromResponse = (response) => {
 /**
  * AI Image Generation
  * POST /api/generate
+ * 需要用户登录
  */
-router.post('/', async (ctx) => {
+router.post('/', auth, async (ctx) => {
   try {
     const { prompt, model, aspectRatio, inputImages } = ctx.request.body;
     
@@ -112,8 +114,8 @@ router.post('/', async (ctx) => {
       return;
     }
 
-    // Mock user for development
-    const user = ctx.state.user || { id: 1, credits: 1000, save: async () => {} };
+    // 获取已认证的用户（auth 中间件已验证）
+    const user = ctx.state.user;
     
     // 检查积分
     const creditsRequired = MODEL_CREDITS[model] || 10;
@@ -147,29 +149,29 @@ router.post('/', async (ctx) => {
     user.credits -= creditsRequired;
     await user.save();
     
-    // 保存历史记录（非 mock 用户）
-    if (user.id !== 1) {
-      try {
-        await GenerationHistory.create({
-          userId: user.id,
-          prompt,
-          model,
-          aspectRatio,
-          inputImages: inputImages || [],
-          outputImage,
-          creditsUsed: creditsRequired,
-          status: 'completed'
-        });
-      } catch (dbErr) {
-        logger.warn(`Failed to save history: ${dbErr.message}`);
-      }
+    // 保存历史记录
+    let historyId = 0;
+    try {
+      const history = await GenerationHistory.create({
+        userId: user.id,
+        prompt,
+        model,
+        aspectRatio,
+        inputImages: inputImages || [],
+        outputImage,
+        creditsUsed: creditsRequired,
+        status: 'completed'
+      });
+      historyId = history.id;
+    } catch (dbErr) {
+      logger.warn(`Failed to save history: ${dbErr.message}`);
     }
     
     ctx.body = success({
       imageUrl: outputImage,
       creditsUsed: creditsRequired,
       remainingCredits: user.credits,
-      historyId: 0
+      historyId
     }, 'Image generated successfully');
     
   } catch (err) {

@@ -168,13 +168,12 @@ export default {
       }
     },
     canGenerate() {
-      // return this.isAuthenticated && this.prompt.trim().length > 0 && !this.isGenerating;
-      return this.prompt.trim().length > 0 && !this.isGenerating;
+      return this.isAuthenticated && this.prompt.trim().length > 0 && !this.isGenerating;
     },
     disabledReason() {
-      // if (!this.isAuthenticated) {
-      //   return '请先登录';
-      // }
+      if (!this.isAuthenticated) {
+        return '请先登录';
+      }
       if (!this.prompt.trim()) {
         return '请输入图片描述';
       }
@@ -192,6 +191,15 @@ export default {
       this.selectedResolution = resolution;
     },
     async handleGenerate() {
+      // 未登录时弹出登录弹窗
+      if (!this.isAuthenticated) {
+        this.$store.dispatch('ui/showAuthModal', {
+          mode: 'login',
+          redirect: this.$route.path
+        });
+        return;
+      }
+      
       if (!this.canGenerate) return;
       
       this.$store.dispatch('generation/setGenerating', true);
