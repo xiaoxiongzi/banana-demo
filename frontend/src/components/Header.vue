@@ -63,12 +63,12 @@
               </div>
             </template>
             <template v-else>
-              <router-link
-                to="/login"
+              <button
+                @click="openAuthModal"
                 class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-1.5 rounded-full shadow-lg shadow-banana-300/30 transition-all transform hover:scale-105 text-sm"
               >
                 登录 / 注册
-              </router-link>
+              </button>
             </template>
           </div>
         </nav>
@@ -126,13 +126,12 @@
             </router-link>
           </template>
           <template v-else>
-            <router-link
-              to="/login"
+            <button
+              @click="openAuthModal"
               class="bg-slate-900 text-white px-4 py-1.5 rounded-full w-fit text-sm"
-              @click.native="showMobileMenu = false"
             >
               登录 / 注册
-            </router-link>
+            </button>
           </template>
         </nav>
       </div>
@@ -165,8 +164,15 @@ export default {
     handleLogout() {
       this.$store.dispatch('auth/logout');
       this.showUserMenu = false;
-      this.$router.push('/');
+      // 只有不在首页时才跳转，避免重复导航错误
+      if (this.$route.path !== '/') {
+        this.$router.push('/');
+      }
       this.$store.dispatch('ui/showSuccess', '已退出登录');
+    },
+    openAuthModal() {
+      this.showMobileMenu = false;
+      this.$store.dispatch('ui/showAuthModal', { mode: 'login' });
     }
   },
   mounted() {

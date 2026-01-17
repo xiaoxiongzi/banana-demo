@@ -81,14 +81,17 @@ router.beforeEach((to, from, next) => {
   
   // 需要认证的路由
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next({
-      path: '/login',
-      query: { redirect: to.fullPath }
+    // 显示登录弹窗而不是跳转页面
+    store.dispatch('ui/showAuthModal', { 
+      mode: 'login', 
+      redirect: to.fullPath 
     });
+    // 阻止导航，保持在当前页面
+    next(false);
     return;
   }
   
-  // 游客路由（已登录用户不能访问）
+  // 游客路由（已登录用户不能访问）- 重定向到首页
   if (to.meta.guest && isAuthenticated) {
     next('/');
     return;

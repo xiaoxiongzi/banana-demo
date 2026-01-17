@@ -4,6 +4,11 @@ const state = {
     show: false,
     message: '',
     type: 'info' // info, success, warning, error
+  },
+  authModal: {
+    show: false,
+    mode: 'login', // login, register
+    redirect: null // 登录后重定向的路径
   }
 };
 
@@ -20,6 +25,20 @@ const mutations = {
   },
   HIDE_TOAST(state) {
     state.toast.show = false;
+  },
+  SHOW_AUTH_MODAL(state, { mode = 'login', redirect = null }) {
+    state.authModal = {
+      show: true,
+      mode,
+      redirect
+    };
+  },
+  HIDE_AUTH_MODAL(state) {
+    state.authModal.show = false;
+    state.authModal.redirect = null;
+  },
+  SET_AUTH_MODAL_MODE(state, mode) {
+    state.authModal.mode = mode;
   }
 };
 
@@ -44,12 +63,25 @@ const actions = {
   },
   showInfo({ dispatch }, message) {
     dispatch('showToast', { message, type: 'info' });
+  },
+  showAuthModal({ commit }, payload = {}) {
+    commit('SHOW_AUTH_MODAL', payload);
+  },
+  hideAuthModal({ commit }) {
+    commit('HIDE_AUTH_MODAL');
+  },
+  setAuthModalMode({ commit }, mode) {
+    commit('SET_AUTH_MODAL_MODE', mode);
   }
 };
 
 const getters = {
   loading: state => state.loading,
-  toast: state => state.toast
+  toast: state => state.toast,
+  authModal: state => state.authModal,
+  showAuthModal: state => state.authModal.show,
+  authModalMode: state => state.authModal.mode,
+  authModalRedirect: state => state.authModal.redirect
 };
 
 export default {

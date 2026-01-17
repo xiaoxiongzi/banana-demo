@@ -1,4 +1,6 @@
 import axios from 'axios';
+import store from '@/store';
+import router from '@/router';
 
 // 创建 axios 实例
 const api = axios.create({
@@ -8,6 +10,9 @@ const api = axios.create({
     'Content-Type': 'application/json'
   }
 });
+
+// 不需要处理 401 重定向的路径
+const authPaths = ['/login', '/register'];
 
 // 请求拦截器
 api.interceptors.request.use(
@@ -36,9 +41,21 @@ api.interceptors.response.use(
       
       // 处理认证错误
       if (status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        // 清除认证状态
+        store.dispatch('auth/logout');
+        
+        // 获取当前路径
+        const currentPath = router.currentRoute?.path || window.location.pathname;
+        
+        // 如果不在登录/注册页面，显示登录弹窗
+        if (!authPaths.includes(currentPath)) {
+          store.dispatch('ui/showAuthModal', {
+            mode: 'login',
+            redirect: currentPath
+          });
+        }
+        
+        // 不再使用 window.location.href 强制跳转，避免循环重定向
       }
       
       // 返回错误信息
