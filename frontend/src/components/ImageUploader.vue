@@ -1,11 +1,11 @@
 <template>
-  <div class="bg-white rounded-2xl p-5 border border-banana-100 shadow-sm flex flex-col">
-    <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
-      选择图片 <span class="text-xs font-normal text-slate-400">(可选)</span>
-    </h3>
+  <div class="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm flex flex-col h-full">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-bold text-slate-800">选择图片（可选）</h3>
+    </div>
     
-    <div class="bg-banana-50/50 border border-banana-200 rounded-lg p-3 text-xs text-banana-800 mb-4 flex items-start gap-2">
-      ✨ 上传图片可进行“图生图”参考，不上传则为“文生图”
+    <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-600 mb-4 flex items-start gap-2">
+      ✨ 上传图片可进行图生图参考，不上传则为文生图
     </div>
     
     <input
@@ -21,7 +21,7 @@
         v-for="slot in slots"
         :key="slot.index"
         @click="handleSlotClick(slot.index)"
-        class="relative aspect-square rounded-xl border-2 border-dashed border-slate-200 hover:border-banana-400 hover:bg-banana-50 transition-all flex flex-col items-center justify-center text-slate-400 hover:text-banana-500 group overflow-hidden"
+        class="relative aspect-square rounded-xl border-2 border-dashed border-slate-200 hover:border-banana-400 hover:bg-banana-50 transition-all flex flex-col items-center justify-center text-slate-500 hover:text-banana-500 group overflow-hidden"
       >
         <template v-if="slot.image">
           <img :src="slot.image.data" alt="Upload" class="w-full h-full object-cover" />
@@ -37,6 +37,9 @@
           <span class="text-[10px] font-bold">添加图片</span>
         </template>
       </button>
+    </div>
+    <div class="text-xs text-slate-400 mt-1">
+      最多可添加 4 张参考图
     </div>
   </div>
 </template>

@@ -1,17 +1,17 @@
 <template>
   <header class="sticky top-0 z-40 w-full bg-banana-50/90 backdrop-blur-md border-b border-banana-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
+      <div class="flex items-center justify-between h-14">
         <!-- Logo -->
         <router-link to="/" class="flex items-center gap-2">
-          <div class="w-8 h-8 bg-gradient-to-br from-banana-400 to-banana-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
+          <div class="w-7 h-7 bg-gradient-to-br from-banana-400 to-banana-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm text-sm">
             N
           </div>
-          <span class="text-xl font-bold text-banana-600 tracking-tight">Nano Banana</span>
+          <span class="text-lg font-bold text-banana-600 tracking-tight">Nano Banana</span>
         </router-link>
         
         <!-- Desktop Navigation -->
-        <nav class="hidden md:flex items-center space-x-6 text-sm font-semibold text-slate-600">
+        <nav class="hidden md:flex items-center space-x-5 text-sm font-semibold text-slate-600">
           <router-link to="/contact" class="hover:text-banana-600 transition-colors">
             联系我们
           </router-link>
@@ -25,20 +25,20 @@
             API调用
           </router-link>
           
-          <div class="h-4 w-px bg-slate-300 mx-2"></div>
+          <div class="h-3 w-px bg-slate-300 mx-2"></div>
           
           <div class="flex items-center gap-3">
             <template v-if="isAuthenticated">
               <router-link
                 to="/pricing"
-                class="cursor-pointer bg-banana-400 hover:bg-banana-500 text-white px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm transition-all text-xs font-bold"
+                class="cursor-pointer bg-banana-400 hover:bg-banana-500 text-white px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm transition-all text-xs font-bold"
               >
                 ⚡ 余额: {{ credits }} 积分
               </router-link>
               <div class="relative" ref="userMenu">
                 <button
                   @click="toggleUserMenu"
-                  class="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 cursor-pointer"
+                  class="w-7 h-7 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 cursor-pointer text-sm"
                 >
                   👤
                 </button>
@@ -65,7 +65,7 @@
             <template v-else>
               <router-link
                 to="/login"
-                class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-full shadow-lg shadow-banana-300/30 transition-all transform hover:scale-105"
+                class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-1.5 rounded-full shadow-lg shadow-banana-300/30 transition-all transform hover:scale-105 text-sm"
               >
                 登录 / 注册
               </router-link>
@@ -78,7 +78,7 @@
           @click="toggleMobileMenu"
           class="md:hidden text-slate-600"
         >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
         </button>
@@ -119,7 +119,7 @@
           <template v-if="isAuthenticated">
             <router-link
               to="/pricing"
-              class="inline-flex items-center gap-1.5 bg-banana-400 text-white px-3 py-1.5 rounded-full text-xs font-bold w-fit"
+              class="inline-flex items-center gap-1.5 bg-banana-400 text-white px-2.5 py-1 rounded-full text-xs font-bold w-fit"
               @click.native="showMobileMenu = false"
             >
               ⚡ 余额: {{ credits }} 积分
@@ -128,7 +128,7 @@
           <template v-else>
             <router-link
               to="/login"
-              class="bg-slate-900 text-white px-5 py-2 rounded-full w-fit"
+              class="bg-slate-900 text-white px-4 py-1.5 rounded-full w-fit text-sm"
               @click.native="showMobileMenu = false"
             >
               登录 / 注册

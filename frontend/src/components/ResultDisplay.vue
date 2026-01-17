@@ -1,60 +1,71 @@
 <template>
-  <div class="bg-[#FFFBF0] rounded-2xl border-2 border-banana-100 flex flex-col items-center justify-center relative overflow-hidden min-h-[400px] h-full">
-    <h3 class="absolute top-6 left-6 font-bold text-slate-800 z-10 bg-white/50 backdrop-blur-sm px-3 py-1 rounded-full">
-      生成结果
-    </h3>
-    
-    <div v-if="isGenerating" class="flex flex-col items-center justify-center p-8 text-center animate-pulse">
-      <div class="w-24 h-24 mb-6 relative">
-        <div class="absolute inset-0 bg-banana-400 rounded-full animate-ping opacity-20"></div>
-        <div class="absolute inset-0 bg-gradient-to-tr from-banana-300 to-orange-400 rounded-full flex items-center justify-center text-white shadow-xl">
-          <span class="w-10 h-10 border-4 border-white/50 border-t-white rounded-full animate-spin"></span>
-        </div>
-      </div>
-      <h4 class="text-xl font-bold text-banana-800 mb-2">AI 正在绘制...</h4>
-      <p class="text-banana-600/70 text-sm">正在处理光影细节，请稍候</p>
-    </div>
-    
-    <div v-else-if="result" class="w-full h-full relative group">
-      <img
-        :src="result.imageUrl"
-        alt="生成的图片"
-        class="w-full h-full object-cover"
-      />
-      
-      <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-[2px]">
+  <div class="bg-slate-50 rounded-2xl border border-slate-200/70 shadow-sm flex flex-col relative overflow-hidden min-h-[420px] h-full">
+    <!-- 标题栏 -->
+    <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200/50 bg-white/50 backdrop-blur-sm z-10">
+      <h3 class="font-bold text-slate-800 text-sm">生成结果</h3>
+      <div v-if="result" class="flex items-center gap-2">
         <button
           @click="downloadImage"
-          class="bg-white text-slate-800 p-4 rounded-full shadow-xl hover:scale-110 transition-transform font-bold flex flex-col items-center justify-center gap-1 w-20 h-20"
+          class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all shadow-sm hover:shadow-md active:scale-95"
         >
-          ⬇️
-          <span class="text-[10px]">下载</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          下载
         </button>
         <button
           @click="regenerate"
-          class="bg-white/20 text-white border border-white/50 p-4 rounded-full shadow-xl hover:bg-white/30 transition-colors w-16 h-16 flex items-center justify-center backdrop-blur-md"
+          class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95"
         >
-          🔄
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          重新生成
         </button>
       </div>
     </div>
     
-    <div v-else class="flex flex-col items-center justify-center p-8 text-center">
-      <div class="w-20 h-20 mb-6 relative grayscale opacity-50">
-        <div class="absolute inset-0 bg-banana-200 rounded-full opacity-20"></div>
-        <div class="w-full h-full flex items-center justify-center text-3xl relative z-10">🎨</div>
+    <!-- 内容区域 -->
+    <div class="flex-1 flex items-center justify-center p-4">
+      <!-- 加载状态 -->
+      <div v-if="isGenerating" class="flex flex-col items-center justify-center text-center animate-pulse">
+        <div class="w-24 h-24 mb-6 relative">
+          <div class="absolute inset-0 bg-banana-400 rounded-full animate-ping opacity-20"></div>
+          <div class="absolute inset-0 bg-gradient-to-tr from-banana-300 to-orange-400 rounded-full flex items-center justify-center text-white shadow-xl">
+            <span class="w-10 h-10 border-4 border-white/50 border-t-white rounded-full animate-spin"></span>
+          </div>
+        </div>
+        <h4 class="text-xl font-bold text-banana-800 mb-2">AI 正在绘制...</h4>
+        <p class="text-banana-600/70 text-sm">正在处理细节，请稍候</p>
       </div>
       
-      <h4 class="text-lg font-bold text-slate-800 mb-2">准备就绪</h4>
-      <p class="text-slate-500 text-sm max-w-[200px]">
-        输入描述并点击生成，奇迹即将发生
-      </p>
-    </div>
-    
-    <div v-if="!isGenerating && !result" class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2">
-      <button class="bg-red-100 p-3 rounded-full shadow-lg border-4 border-white text-red-400 hover:scale-110 transition-transform cursor-not-allowed opacity-50">
-        <span class="font-bold text-xs">R18</span>
-      </button>
+      <!-- 生成结果 -->
+      <div v-else-if="result" class="w-full h-full flex flex-col items-center justify-center relative">
+        <!-- 图片容器 -->
+        <div class="relative w-full h-full flex items-center justify-center bg-slate-100/50 rounded-xl overflow-hidden">
+          <!-- 棋盘格背景（用于透明图片） -->
+          <div class="absolute inset-0 opacity-30" style="background-image: linear-gradient(45deg, #e2e8f0 25%, transparent 25%), linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e8f0 75%), linear-gradient(-45deg, transparent 75%, #e2e8f0 75%); background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0px;"></div>
+          
+          <img
+            :src="result.imageUrl"
+            alt="生成的图片"
+            class="max-w-full max-h-full object-contain relative z-10 rounded-lg shadow-lg"
+          />
+        </div>
+      </div>
+      
+      <!-- 空状态 -->
+      <div v-else class="flex flex-col items-center justify-center text-center">
+        <div class="w-20 h-20 mb-6 relative grayscale opacity-50">
+          <div class="absolute inset-0 bg-banana-200 rounded-full opacity-20"></div>
+          <div class="w-full h-full flex items-center justify-center text-3xl relative z-10">🎨</div>
+        </div>
+        
+        <h4 class="text-lg font-bold text-slate-800 mb-2">准备就绪</h4>
+        <p class="text-slate-500 text-sm whitespace-nowrap max-w-[320px]">
+          输入描述并点击生成，奇迹即将发生
+        </p>
+      </div>
     </div>
   </div>
 </template>

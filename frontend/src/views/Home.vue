@@ -3,87 +3,98 @@
     <Header />
     
     <main class="flex-1">
-      <!-- Hero Section -->
-      <section class="py-10 md:py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2">
-            Nano Banana AI: 排名第一的 <span class="text-banana-600">AI 图像编辑工具</span>
-          </h1>
-          <p class="text-slate-600 max-w-2xl mx-auto">
-            快速编辑、调整和优化您的图片！最佳图像到图像AI模型。优于 Flux、Qwen、Image-1
-          </p>
-          <div class="mt-4">
-            <span class="inline-block px-4 py-1.5 rounded-full bg-banana-200/50 text-banana-800 text-sm font-semibold border border-banana-200">
-              由 Nano Banana 提供支持的AI图片编辑器
-            </span>
+      <!-- Hero Section with Mode Switcher -->
+      <section class="py-5 md:py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <!-- Left: Title & Subtitle -->
+            <div class="text-center md:text-left">
+              <h1 class="text-xl md:text-2xl font-extrabold text-slate-900 mb-0.5">
+                Nano Banana AI: 排名第一的 <span class="text-banana-600">AI 图像编辑工具</span>
+              </h1>
+              <p class="text-slate-500 text-xs md:text-sm">
+                快速编辑、调整和优化您的图片！最佳图像到图像AI模型。优于 Flux、Qwen、Image-1
+              </p>
+            </div>
+            
+            <!-- Right: Mode Switcher -->
+            <div class="flex justify-center md:justify-end flex-shrink-0">
+              <div class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+                <button class="bg-gradient-to-r from-banana-500 to-orange-500 text-white shadow-md shadow-orange-500/25 px-4 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1.5 transform active:scale-95 transition-all">
+                  🖼️ 单图生成
+                </button>
+                <button class="text-slate-600 hover:bg-slate-50 px-4 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1.5 transition-colors">
+                  🧩 批量生成
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
       
       <!-- Main Content -->
-      <section class="pb-16">
+      <section class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <!-- Mode Switcher -->
-          <div class="flex justify-center gap-4 mb-6">
-            <button class="bg-gradient-to-r from-banana-500 to-orange-500 text-white shadow-lg shadow-orange-500/30 px-6 py-2 rounded-lg font-bold flex items-center gap-2 transform active:scale-95 transition-all">
-              🖼️ 单图生成
-            </button>
-            <button class="bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-6 py-2 rounded-lg font-bold flex items-center gap-2 transition-colors">
-              🧩 批量生成
-            </button>
-          </div>
-          
           <!-- Main Grid -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:h-[800px]">
+          <div class="grid grid-cols-1 lg:grid-cols-16 gap-6 h-auto lg:min-h-[720px]">
             <!-- Left: Image Upload -->
-            <div class="lg:col-span-3">
+            <div class="lg:col-span-5">
               <ImageUploader />
             </div>
             
             <!-- Center: Controls & Prompt -->
-            <div class="lg:col-span-5 bg-white rounded-2xl p-6 border border-banana-100 shadow-sm flex flex-col overflow-y-auto custom-scrollbar">
-              <div class="mb-6">
-                <ModelSelector />
-              </div>
-              <div class="mb-6">
-                <AspectRatioSelector />
-              </div>
-              
-              <!-- Resolution -->
-              <div class="mb-6">
-                <h3 class="font-bold text-slate-800 mb-3">分辨率</h3>
-                <div class="grid grid-cols-3 gap-2">
-                  <button
-                    v-for="res in resolutions"
-                    :key="res"
-                    @click="selectResolution(res)"
-                    :class="[
-                      'py-1.5 px-3 rounded text-sm font-bold border transition-all',
-                      selectedResolution === res
-                        ? 'bg-emerald-500 border-emerald-500 text-white'
-                        : 'border-slate-200 text-slate-500 hover:border-slate-300'
-                    ]"
-                  >
-                    {{ res }}
-                  </button>
-                </div>
-              </div>
-              
-              <!-- Prompt -->
-              <div class="flex-grow flex flex-col">
-                <h3 class="font-bold text-slate-800 mb-3">描述需求</h3>
-                <div class="relative flex-grow">
-                  <textarea
-                    v-model="prompt"
-                    class="w-full h-full min-h-[140px] p-4 rounded-xl border border-slate-200 focus:border-banana-400 focus:ring-4 focus:ring-banana-100 outline-none resize-none text-slate-700 text-sm bg-slate-50/50 pb-10"
-                    placeholder="描述您想要生成的图片，例如：一只可爱的小猫坐在彩虹上、未来城市的夜景、油画风格的向日葵...越详细越好。"
-                  ></textarea>
-                  <div class="absolute bottom-3 left-3 flex items-center gap-1 text-[10px] text-orange-500 bg-white/80 px-2 py-1 rounded border border-orange-100 pointer-events-none">
-                    ⚠️ 严禁生成违规内容
+            <div class="lg:col-span-5 bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm flex flex-col overflow-y-auto custom-scrollbar">
+              <div class="space-y-4">
+                <section class="pb-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-bold text-sm text-slate-800">模型选择</h3>
+                    <span class="text-[13px] text-slate-500">推荐 Banana</span>
                   </div>
-                </div>
+                  <ModelSelector />
+                </section>
+
+                <section class="pb-4">
+                  <h3 class="font-bold text-sm text-slate-800 mb-2">图片尺寸</h3>
+                  <AspectRatioSelector />
+                </section>
+
+                <!-- Resolution -->
+                <section class="pb-4">
+                  <h3 class="font-bold text-sm text-slate-800 mb-2">分辨率</h3>
+                  <div class="grid grid-cols-3 gap-2">
+                    <button
+                      v-for="res in resolutions"
+                      :key="res"
+                      @click="selectResolution(res)"
+                      :class="[
+                        'px-3 rounded text-[13px] font-bold border transition-all',
+                        selectedResolution === res
+                          ? 'bg-emerald-500 border-emerald-500 text-white'
+                          : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                      ]"
+                      style="height: 32px;"
+                    >
+                      {{ res }}
+                    </button>
+                  </div>
+                </section>
+
+                <!-- Prompt -->
+                <section class="flex-grow flex flex-col">
+                  <h3 class="font-bold text-sm text-slate-800 mb-2">描述需求</h3>
+                  <div class="relative flex-grow">
+                    <textarea
+                      v-model="prompt"
+                      class="w-full h-full min-h-[160px] p-4 rounded-xl border border-slate-200 focus:border-banana-400 focus:ring-4 focus:ring-banana-100 outline-none resize-none text-slate-700 text-[13px] bg-white pb-10"
+                      placeholder="描述您想要生成的图片，例如：一只可爱的小猫坐在彩虹上、未来城市的夜景、油画风格的向日葵...越详细越好。"
+                    ></textarea>
+                    <div class="absolute bottom-3 left-3 flex items-center gap-1 text-xs text-orange-500 bg-white/90 px-2 py-1 rounded border border-orange-100 pointer-events-none">
+                      ⚠️ 严禁生成违规内容
+                    </div>
+                  </div>
+                </section>
               </div>
-              
+
               <div class="mt-6">
                 <GenerateButton
                   :disabled="!canGenerate"
@@ -91,10 +102,17 @@
                   @generate="handleGenerate"
                 />
               </div>
+              
+              <!-- Brand Badge -->
+              <div class="mt-2 pt-2 w-full">
+                <span class="block w-full text-center text-[11px] font-semibold text-banana-800 bg-banana-200/60 border border-banana-200/80 px-2.5 py-1 rounded-lg">
+                  由 Nano Banana 提供支持的AI图片编辑器
+                </span>
+              </div>
             </div>
             
             <!-- Right: Result -->
-            <div class="lg:col-span-4">
+            <div class="lg:col-span-6">
               <ResultDisplay @regenerate="handleGenerate" />
             </div>
           </div>
@@ -131,7 +149,11 @@ export default {
   data() {
     return {
       resolutions: ['1K', '2K', '4K'],
-      selectedResolution: '1K'
+      selectedResolution: '1K',
+      modelLabels: {
+        banana: 'Banana',
+        'banana-pro': 'Banana Pro'
+      }
     };
   },
   computed: {
@@ -157,6 +179,12 @@ export default {
         return '请输入图片描述';
       }
       return '请填写完整信息';
+    },
+    selectedModelLabel() {
+      return this.modelLabels[this.config.model] || this.config.model || 'Banana';
+    },
+    selectedAspectRatioLabel() {
+      return this.config.aspectRatio || '1:1';
     }
   },
   methods: {
