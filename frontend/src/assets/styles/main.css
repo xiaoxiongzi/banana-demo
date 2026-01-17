@@ -15,6 +15,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #FFFBF0;
 }
 
 /* 滚动条样式 */
@@ -24,21 +25,21 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #FFF6E5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #F2B24A;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #E18A0F;
 }
 
 /* 自定义工具类 */
 .btn-primary {
-  @apply bg-primary hover:bg-primary-600 text-white font-semibold py-3 px-8 rounded-full transition duration-300 shadow-md hover:shadow-lg;
+  @apply bg-gradient-to-r from-banana-500 to-orange-500 text-white font-semibold py-3 px-8 rounded-full transition duration-300 shadow-md hover:shadow-lg;
 }
 
 .btn-secondary {
@@ -46,11 +47,11 @@ body {
 }
 
 .card {
-  @apply bg-white rounded-3xl shadow-sm p-6 border border-gray-100;
+  @apply bg-white rounded-2xl shadow-sm p-6 border border-banana-100;
 }
 
 .input-field {
-  @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  @apply w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-banana-100 focus:border-banana-400 text-slate-700 bg-slate-50/50;
 }
 
 .section-title {
@@ -59,13 +60,13 @@ body {
 
 /* 渐变背景 */
 .bg-banana-gradient {
-  background: #FFEFD5;
+  background: #FFFBF0;
 }
 
 /* 加载动画 */
 .loading-spinner {
   border: 3px solid #f3f3f3;
-  border-top: 3px solid #FF8C00;
+  border-top: 3px solid #F8A51B;
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -81,6 +82,20 @@ body {
 .toast {
   @apply fixed top-4 right-4 z-50 bg-white shadow-lg rounded-lg p-4 max-w-md;
   animation: slideIn 0.3s ease-out;
+}
+
+/* 自定义滚动条容器 */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #F2B24A;
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 @keyframes slideIn {

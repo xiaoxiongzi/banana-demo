@@ -23,7 +23,7 @@ const mutations = {
     state.config.inputImages = images;
   },
   ADD_INPUT_IMAGE(state, image) {
-    if (state.config.inputImages.length < 3) {
+    if (state.config.inputImages.length < 4) {
       state.config.inputImages.push(image);
     }
   },

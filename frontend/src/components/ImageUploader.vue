@@ -1,55 +1,42 @@
 <template>
-  <div class="image-uploader card">
-    <h3 class="text-lg font-bold text-gray-800 mb-4">选择图片（可选）</h3>
+  <div class="bg-white rounded-2xl p-5 border border-banana-100 shadow-sm flex flex-col">
+    <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+      选择图片 <span class="text-xs font-normal text-slate-400">(可选)</span>
+    </h3>
     
-    <div class="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
-      <p class="text-sm text-gray-700">
-        💡 可以上传图片进行编辑，或直接输入提示词生成新图片
-      </p>
+    <div class="bg-banana-50/50 border border-banana-200 rounded-lg p-3 text-xs text-banana-800 mb-4 flex items-start gap-2">
+      ✨ 上传图片可进行“图生图”参考，不上传则为“文生图”
     </div>
     
-    <div class="upload-area border-2 border-dashed border-gray-300 rounded-xl py-16 px-8 text-center hover:border-primary transition cursor-pointer">
-      <div class="flex flex-col items-center">
-        <span class="text-4xl mb-3">🎨</span>
-        <h4 class="font-semibold text-gray-600 mb-2">上传图片进行编辑（可选）</h4>
-        <p class="text-sm text-gray-500 mb-4">支持 JPG、PNG、WEBP 格式，最多3张图片</p>
-        
-        <input
-          ref="fileInput"
-          type="file"
-          multiple
-          accept="image/jpeg,image/jpg,image/png,image/webp"
-          @change="handleFileSelect"
-          class="hidden"
-        />
-        
-        <button
-          @click="$refs.fileInput.click()"
-          class="bg-primary hover:bg-primary-600 text-white px-6 py-2 rounded-lg transition"
-          :disabled="uploading || images.length >= 3"
-        >
-          {{ uploading ? '上传中...' : '选择图片' }}
-        </button>
-        
-        <p class="text-xs text-gray-400 mt-2">或直接在下方输入提示词</p>
-      </div>
-    </div>
+    <input
+      ref="fileInput"
+      type="file"
+      accept="image/jpeg,image/jpg,image/png,image/webp"
+      @change="handleFileSelect"
+      class="hidden"
+    />
     
-    <!-- 已上传图片预览 -->
-    <div v-if="images.length > 0" class="mt-4 grid grid-cols-3 gap-3">
-      <div
-        v-for="(image, index) in images"
-        :key="index"
-        class="relative group"
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <button
+        v-for="slot in slots"
+        :key="slot.index"
+        @click="handleSlotClick(slot.index)"
+        class="relative aspect-square rounded-xl border-2 border-dashed border-slate-200 hover:border-banana-400 hover:bg-banana-50 transition-all flex flex-col items-center justify-center text-slate-400 hover:text-banana-500 group overflow-hidden"
       >
-        <img :src="image.data" alt="上传的图片" class="w-full h-24 object-cover rounded-lg" />
-        <button
-          @click="removeImage(index)"
-          class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-        >
-          ✕
-        </button>
-      </div>
+        <template v-if="slot.image">
+          <img :src="slot.image.data" alt="Upload" class="w-full h-full object-cover" />
+          <div
+            @click.stop="removeImage(slot.index)"
+            class="absolute top-1 right-1 bg-black/50 hover:bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            ✕
+          </div>
+        </template>
+        <template v-else>
+          <span class="text-2xl mb-1 opacity-50 group-hover:opacity-100 transition-opacity">➕</span>
+          <span class="text-[10px] font-bold">添加图片</span>
+        </template>
+      </button>
     </div>
   </div>
 </template>
@@ -61,57 +48,78 @@ export default {
   name: 'ImageUploader',
   data() {
     return {
-      uploading: false
+      uploading: false,
+      activeSlotIndex: null,
+      slotImages: Array(4).fill(null)
     };
   },
   computed: {
     ...mapGetters('generation', ['config']),
     images() {
       return this.config.inputImages;
+    },
+    slots() {
+      return this.slotImages.map((image, index) => ({
+        index,
+        image
+      }));
+    }
+  },
+  watch: {
+    images: {
+      handler(newImages) {
+        const normalized = Array(4).fill(null);
+        (newImages || []).slice(0, 4).forEach((image, index) => {
+          normalized[index] = image;
+        });
+        this.slotImages = normalized;
+      },
+      immediate: true
     }
   },
   methods: {
+    handleSlotClick(index) {
+      this.activeSlotIndex = index;
+      this.$refs.fileInput.click();
+    },
     async handleFileSelect(event) {
-      const files = Array.from(event.target.files);
+      const file = event.target.files?.[0];
+      if (!file) return;
       
-      if (files.length === 0) return;
-      
-      // 检查数量限制
-      if (this.images.length + files.length > 3) {
-        this.$store.dispatch('ui/showWarning', '最多只能上传3张图片');
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        this.$store.dispatch('ui/showError', '图片大小不能超过5MB');
+        event.target.value = '';
         return;
       }
       
-      // 检查文件大小
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      const oversizedFiles = files.filter(file => file.size > maxSize);
-      if (oversizedFiles.length > 0) {
-        this.$store.dispatch('ui/showError', '图片大小不能超过5MB');
+      if (this.activeSlotIndex === null) {
+        event.target.value = '';
         return;
       }
       
       this.uploading = true;
       
       try {
-        // 直接在前端内存中读取图片为 base64
-        const imagePromises = files.map(file => {
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              resolve({
-                data: e.target.result, // base64 data URL
-                mimeType: file.type,
-                name: file.name
-              });
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          });
+        const imageData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            resolve({
+              data: e.target.result,
+              mimeType: file.type,
+              name: file.name
+            });
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
         });
         
-        const imageData = await Promise.all(imagePromises);
-        const newImages = [...this.images, ...imageData];
-        this.$store.dispatch('generation/updateInputImages', newImages);
+        const nextSlots = [...this.slotImages];
+        nextSlots[this.activeSlotIndex] = imageData;
+        this.slotImages = nextSlots;
+        
+        const filteredImages = nextSlots.filter(Boolean);
+        this.$store.dispatch('generation/updateInputImages', filteredImages);
         this.$store.dispatch('ui/showSuccess', '图片加载成功');
       } catch (error) {
         this.$store.dispatch('ui/showError', error.message || '图片加载失败');
@@ -121,7 +129,10 @@ export default {
       }
     },
     removeImage(index) {
-      this.$store.dispatch('generation/removeInputImage', index);
+      const nextSlots = [...this.slotImages];
+      nextSlots[index] = null;
+      this.slotImages = nextSlots;
+      this.$store.dispatch('generation/updateInputImages', nextSlots.filter(Boolean));
     }
   }
 };

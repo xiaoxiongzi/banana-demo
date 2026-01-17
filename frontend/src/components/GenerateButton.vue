@@ -3,19 +3,19 @@
     @click="handleGenerate"
     :disabled="disabled || isGenerating"
     :class="[
-      'w-full py-4 rounded-xl font-semibold text-lg transition duration-300 shadow-md hover:shadow-lg',
+      'w-full py-3.5 font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-lg',
       disabled || isGenerating
-        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-        : 'bg-primary hover:bg-orange-600 text-white'
+        ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+        : 'bg-gradient-to-r from-banana-500 to-orange-500 hover:from-banana-600 hover:to-orange-600 text-white shadow-banana-500/30 hover:-translate-y-1'
     ]"
   >
     <span v-if="isGenerating" class="flex items-center justify-center">
-      <span class="loading-spinner inline-block w-5 h-5 mr-2"></span>
-      生成中...
+      <span class="inline-block w-5 h-5 mr-2 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+      正在创作中...
     </span>
     <!-- <span v-else-if="!isAuthenticated">请先登录使用</span> -->
     <span v-else-if="disabled">{{ disabledReason }}</span>
-    <span v-else>🎨 开始生成</span>
+    <span v-else>✨ 开始生成</span>
   </button>
 </template>
 

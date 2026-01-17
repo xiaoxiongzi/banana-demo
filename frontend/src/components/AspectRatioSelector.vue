@@ -1,20 +1,20 @@
 <template>
   <div class="aspect-ratio-selector">
-    <h3 class="text-lg font-bold text-gray-800 mb-4">图片尺寸</h3>
-    <div class="grid grid-cols-5 gap-2">
+    <h3 class="font-bold text-slate-800 mb-3">图片尺寸</h3>
+    <div class="grid grid-cols-4 gap-2">
       <button
         v-for="ratio in ratios"
         :key="ratio.value"
         @click="selectRatio(ratio.value)"
         :class="[
-          'flex flex-col items-center justify-center p-3 rounded-lg border-2 transition duration-200',
+          'flex flex-col items-center justify-center p-2 rounded-lg border transition-all h-16',
           selectedRatio === ratio.value
-            ? 'border-primary bg-primary text-white'
-            : 'border-gray-300 bg-white hover:border-primary hover:bg-orange-50'
+            ? 'border-banana-500 bg-banana-50 text-banana-700'
+            : 'border-slate-200 text-slate-500 hover:border-banana-300'
         ]"
       >
-        <span class="text-xl mb-1">{{ ratio.icon }}</span>
-        <span class="text-xs font-medium">{{ ratio.value }}</span>
+        <div :class="['border-2 border-current rounded-sm mb-1', ratio.icon]"></div>
+        <span class="text-[10px] font-bold">{{ ratio.value }}</span>
       </button>
     </div>
   </div>
@@ -28,16 +28,12 @@ export default {
   data() {
     return {
       ratios: [
-        { value: '1:1', icon: '□' },
-        { value: '2:3', icon: '▯' },
-        { value: '3:2', icon: '▭' },
-        { value: '3:4', icon: '▯' },
-        { value: '4:3', icon: '▭' },
-        { value: '4:5', icon: '▯' },
-        { value: '5:4', icon: '▭' },
-        { value: '9:16', icon: '▯' },
-        { value: '16:9', icon: '▭' },
-        { value: '21:9', icon: '▬' }
+        { value: '1:1', icon: 'w-4 h-4' },
+        { value: '2:3', icon: 'w-4 h-6' },
+        { value: '3:2', icon: 'w-6 h-4' },
+        { value: '9:16', icon: 'w-3 h-6' },
+        { value: '16:9', icon: 'w-6 h-3' },
+        { value: '21:9', icon: 'w-8 h-3' }
       ]
     };
   },

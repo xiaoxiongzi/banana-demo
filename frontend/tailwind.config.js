@@ -20,9 +20,16 @@ module.exports = {
           900: '#331C00'
         },
         banana: {
-          light: '#FFFACD',
-          DEFAULT: '#FFF8DC',
-          dark: '#FFE4B5'
+          50: '#FFFBF0',
+          100: '#FFF4D6',
+          200: '#FFE7A8',
+          300: '#FFD56B',
+          400: '#FFC241',
+          500: '#F8A51B',
+          600: '#E18A0F',
+          700: '#B96A0A',
+          800: '#8E4F07',
+          900: '#623605'
         }
       },
       backgroundImage: {
